@@ -1,2 +1,3 @@
 # koch-agent-sandbox
-Sandbox repository for agent learning
+
+This is a sandbox repository created by the Antigravity Agent for learning and testing GitHub integrations!
