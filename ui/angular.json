@@ -10,5 +10,8 @@
       "sourceRoot": "src",
       "prefix": "app"
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
