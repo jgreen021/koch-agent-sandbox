@@ -11,11 +11,11 @@ public class AnomalyValidationService {
         this.repository = repository;
     }
 
-    public boolean isAnomaly(AnomalyReading reading) {
+    public AnomalyStatus isAnomaly(AnomalyReading reading) {
         java.util.List<AnomalyReading> history = repository.findTop10ByAssetIdOrderByTimestampDesc(reading.getAssetId());
 
         if (history == null || history.size() < 10) {
-            return false;
+            return AnomalyStatus.INSUFFICIENT_DATA;
         }
 
         double sum = 0.0;
@@ -26,11 +26,25 @@ public class AnomalyValidationService {
         double average = sum / history.size();
 
         if (average == 0.0) {
-            return reading.getReadingValue() != 0.0;
+            // Safe fallback if average is somehow 0
+            if (reading.getReadingValue() > 120.0) return AnomalyStatus.CRITICAL;
+            return AnomalyStatus.NORMAL;
         }
 
         double deviationPercentage = Math.abs(reading.getReadingValue() - average) / average;
         
-        return deviationPercentage > 0.20;
+        if (reading.getReadingValue() > 120.0) {
+            return AnomalyStatus.CRITICAL;
+        }
+
+        if (deviationPercentage >= 0.25) {
+            return AnomalyStatus.CRITICAL;
+        }
+        
+        if (deviationPercentage >= 0.15) {
+            return AnomalyStatus.WARNING;
+        }
+
+        return AnomalyStatus.NORMAL;
     }
 }

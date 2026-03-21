@@ -1,9 +1,9 @@
 package com.koch.anomaly;
 
-public class AnomalyReading {
-    
-    private String assetId;
-    private double readingValue;
+public final class AnomalyReading {
+
+    private final String assetId;
+    private final double readingValue;
 
     public AnomalyReading(String assetId, double readingValue) {
         this.assetId = assetId;
@@ -14,15 +14,7 @@ public class AnomalyReading {
         return assetId;
     }
 
-    public void setAssetId(String assetId) {
-        this.assetId = assetId;
-    }
-
     public double getReadingValue() {
         return readingValue;
-    }
-
-    public void setReadingValue(double readingValue) {
-        this.readingValue = readingValue;
     }
 }
