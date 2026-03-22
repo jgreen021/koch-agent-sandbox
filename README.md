@@ -13,17 +13,17 @@ If you find that commands like `node -v` work in PowerShell but `npm -v` does no
   3. **Crucially:** Restart Antigravity and any open PowerShell windows entirely. Environment variables are loaded on startup, so the IDE needs to be restarted to recognize the new path to both `node` and `npm`.
 
 ### 2. Starting the Server (Gradle for Maven Users)
-This project uses Gradle instead of Maven. Since you are familiar with Maven (`mvn`), Gradle uses a different command line tool (`gradle`) but has equivalent goals (called "tasks").
+This project uses Gradle instead of Maven. Since you are familiar with Maven (`mvn`), Gradle uses a similar concept but uses the provided **Gradle Wrapper** (`gradlew`) to ensure everyone uses the exact same Gradle version without needing to install it manually.
 
-To start the Spring Boot backend server, run the following command from the root of this repository:
+To start the Spring Boot backend server, run the following command from the root of this repository in your PowerShell terminal:
 ```powershell
-gradle bootRun
+.\gradlew bootRun
 ```
-*(Note: If you get a command not recognized error for `gradle`, you will need to [install Gradle](https://gradle.org/install/) on your Windows machine first, and ensure it is also added to your system `PATH`).*
+*(Note: If you run into issues, make sure your JDK is configured correctly and your JAVA_HOME environment variable is pointing to the right JDK!)*
 
 **Common Maven vs. Gradle Commands Quick Reference:**
-* `mvn clean` ➔ `gradle clean`
-* `mvn clean install` ➔ `gradle clean build` (compiles code, runs tests, and assembles the jar/zip)
-* `mvn compile` ➔ `gradle classes`
-* `mvn test` ➔ `gradle test`
-* `mvn spring-boot:run` ➔ `gradle bootRun`
+* `mvn clean` ➔ `.\gradlew clean`
+* `mvn clean install` ➔ `.\gradlew clean build` (compiles code, runs tests, and assembles the jar/zip)
+* `mvn compile` ➔ `.\gradlew classes`
+* `mvn test` ➔ `.\gradlew test`
+* `mvn spring-boot:run` ➔ `.\gradlew bootRun`
