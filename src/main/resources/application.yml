@@ -1,4 +1,15 @@
 spring:
+  datasource:
+    url: ${AZURE_SQL_URL}
+    username: ${AZURE_SQL_USER}
+    password: ${AZURE_SQL_PASSWORD}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServerDialect
   kafka:
     bootstrap-servers: localhost:9092
     producer:

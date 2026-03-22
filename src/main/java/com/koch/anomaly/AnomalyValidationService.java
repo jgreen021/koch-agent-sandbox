@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,6 +24,9 @@ public class AnomalyValidationService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private AssetSensorReadingRepository repository;
 
     private final Map<String, List<AnomalyReading>> readingHistory = new ConcurrentHashMap<>();
 
@@ -69,6 +73,21 @@ public class AnomalyValidationService {
                 result = AnomalyStatus.CRITICAL;
             } else if (deviationPercentage >= 0.15) {
                 result = AnomalyStatus.WARNING;
+            }
+        }
+
+        if ((result == AnomalyStatus.CRITICAL || result == AnomalyStatus.WARNING) && repository != null) {
+            AssetSensorReadingEntity entity = new AssetSensorReadingEntity();
+            entity.setAssetId(reading.getAssetId());
+            entity.setReadingValue(reading.getReadingValue());
+            entity.setUom(reading.getUom());
+            entity.setSensorType("UNKNOWN");
+            entity.setTimestamp(LocalDateTime.now());
+            entity.setStatus(result.name());
+            try {
+                repository.save(entity);
+            } catch (Exception e) {
+                logger.error("Failed to save anomaly reading to DB", e);
             }
         }
 

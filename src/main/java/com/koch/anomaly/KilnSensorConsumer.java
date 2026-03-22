@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @Component
 public class KilnSensorConsumer {
 
@@ -14,20 +16,32 @@ public class KilnSensorConsumer {
     @Autowired
     private AnomalyValidationService service;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @KafkaListener(topics = "kiln-sensor-readings", groupId = "edge-validation-group")
     public void consume(String payload) {
+        AnomalyReading reading = null;
         try {
-            double parsedValue = Double.parseDouble(payload);
-            AnomalyReading reading = new AnomalyReading("KILN-01", parsedValue);
-            AnomalyStatus status = service.isAnomaly(reading); // Called your method 'isAnomaly' corresponding to 'evaluateReading'
-
-            if (status == AnomalyStatus.NORMAL) {
-                logger.info("Reading OK: {}", parsedValue);
-            } else if (status == AnomalyStatus.WARNING || status == AnomalyStatus.CRITICAL) {
-                logger.warn("ALARM: {} - Value: {}", status, parsedValue);
+            // First attempt to parse as a JSON object
+            reading = objectMapper.readValue(payload, AnomalyReading.class);
+        } catch (Exception e) {
+            // Fall back to simple double parsing if not valid JSON
+            try {
+                double parsedValue = Double.parseDouble(payload);
+                reading = new AnomalyReading("KILN-01", parsedValue);
+            } catch (NumberFormatException nfe) {
+                logger.error("Failed to parse payload as JSON or double: [{}]", payload);
+                return;
             }
-        } catch (NumberFormatException e) {
-            logger.error("Failed to parse payload as double: [{}]", payload);
+        }
+
+        AnomalyStatus status = service.isAnomaly(reading);
+
+        if (status == AnomalyStatus.NORMAL) {
+            logger.info("Reading OK: {}", reading.getReadingValue());
+        } else if (status == AnomalyStatus.WARNING || status == AnomalyStatus.CRITICAL) {
+            logger.warn("ALARM: {} - Value: {}", status, reading.getReadingValue());
         }
     }
 }

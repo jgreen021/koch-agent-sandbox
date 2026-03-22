@@ -4,6 +4,7 @@ public class AnomalyReading {
 
     private String assetId;
     private double readingValue;
+    private String uom;
 
     public AnomalyReading() {
     }
@@ -11,6 +12,12 @@ public class AnomalyReading {
     public AnomalyReading(String assetId, double readingValue) {
         this.assetId = assetId;
         this.readingValue = readingValue;
+    }
+
+    public AnomalyReading(String assetId, double readingValue, String uom) {
+        this.assetId = assetId;
+        this.readingValue = readingValue;
+        this.uom = uom;
     }
 
     public String getAssetId() {
@@ -27,5 +34,13 @@ public class AnomalyReading {
 
     public void setReadingValue(double readingValue) {
         this.readingValue = readingValue;
+    }
+
+    public String getUom() {
+        return uom;
+    }
+
+    public void setUom(String uom) {
+        this.uom = uom;
     }
 }
