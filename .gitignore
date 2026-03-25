@@ -17,6 +17,9 @@ docker-compose.yml
 *.iml
 *.ipr
 out/
+bootRun.log
+src/main/resources/application.properties
+src/main/resources/application.yml
 !**/src/main/**/out/
 !**/src/test/**/out/
 
