@@ -23,6 +23,10 @@ The agent must strictly adhere to the following stack for all code generation:
 * **Test-Driven Development:** The agent must adhere to a strict Test-Driven Development (TDD) workflow. When executing tasks, write the failing unit test first, followed by the minimal implementation code required to pass the test, and finally refactor for functional purity.
 * **Test Quality:** Tests must be deterministic, run quickly, and test public behaviors rather than internal implementation details.
 
+## Preferred Patterns
+* Persistence: Favor JpaSpecificationExecutor for dynamic queries to avoid repository bloat.
+* API: Use Pageable and Sort parameters for all collection endpoints to ensure frontend compatibility (PrimeNG).
+
 ## Agent Instructions
 * Read this file before executing any specific change tasks.
 * If a task contradicts these global standards (e.g., requesting mutable state where a pure function is possible), flag the conflict to the user before writing the code.

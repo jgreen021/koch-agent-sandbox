@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,24 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class AnomalyValidationService {
 
     private static final Logger logger = LoggerFactory.getLogger(AnomalyValidationService.class);
+
+    @Autowired
+    private org.springframework.core.env.Environment env;
+
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        logger.info("AnomalyValidationService started. Connection URL: {}", env.getProperty("spring.datasource.url"));
+        try {
+            String serverName = jdbcTemplate.queryForObject("SELECT @@SERVERNAME", String.class);
+            String dbName = jdbcTemplate.queryForObject("SELECT DB_NAME()", String.class);
+            logger.info("Connected to Server: {} - DB: {}", serverName, dbName);
+        } catch (Exception e) {
+            logger.error("Failed to fetch server/db name from JDBC", e);
+        }
+    }
 
     @Autowired(required = false)
     private KafkaTemplate<String, String> kafkaTemplate;
@@ -30,6 +49,7 @@ public class AnomalyValidationService {
 
     private final Map<String, List<AnomalyReading>> readingHistory = new ConcurrentHashMap<>();
 
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public AnomalyStatus isAnomaly(AnomalyReading reading) {
         String assetId = reading.getAssetId();
         List<AnomalyReading> history = readingHistory.computeIfAbsent(assetId, k -> new CopyOnWriteArrayList<>());
@@ -76,7 +96,7 @@ public class AnomalyValidationService {
             }
         }
 
-        if ((result == AnomalyStatus.CRITICAL || result == AnomalyStatus.WARNING) && repository != null) {
+        if (result == AnomalyStatus.CRITICAL || result == AnomalyStatus.WARNING) {
             AssetSensorReadingEntity entity = new AssetSensorReadingEntity();
             entity.setAssetId(reading.getAssetId());
             entity.setReadingValue(reading.getReadingValue());
@@ -86,6 +106,8 @@ public class AnomalyValidationService {
             entity.setStatus(result.name());
             try {
                 repository.save(entity);
+                repository.flush();
+                logger.info("ALARM: {} - Value: {} - Saved to DB. Current DB Count: {}", result, reading.getReadingValue(), repository.count());
             } catch (Exception e) {
                 logger.error("Failed to save anomaly reading to DB", e);
             }

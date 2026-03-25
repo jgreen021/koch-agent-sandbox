@@ -1,10 +1,11 @@
 spring:
   datasource:
-    url: ${AZURE_SQL_URL}
-    username: ${AZURE_SQL_USER}
-    password: ${AZURE_SQL_PASSWORD}
+    url: jdbc:sqlserver://localhost:1433;databaseName=mcp_learning_1;encrypt=true;trustServerCertificate=true
+    username: mcp_agent_user
+    password: REDACTED_DB_PASSWORD
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   jpa:
+    show-sql: true
     hibernate:
       ddl-auto: validate
     properties:

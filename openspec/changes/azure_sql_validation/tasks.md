@@ -20,7 +20,7 @@ Verify the Azure SQL integration, bring the `AnomalyValidationService` under str
   - Start the Spring Boot application locally (`./gradlew bootRun`).
 
 - [x] **Task 4: The Live Fire Test**
-  - Send 10 identical JSON payload messages into the `kiln-sensor-readings` Kafka topic (e.g., `130.0` or a value that guarantees a CRITICAL alarm) using the Kafka CLI producer.
+  - Send 50 identical JSON payload messages into the `kiln-sensor-readings` Kafka topic (e.g., `130.0` or a value that guarantees a CRITICAL alarm) using the Kafka CLI producer.
   - Wait for the Spring Boot logs to output the 'ALARM: CRITICAL' and 'Saved to DB' confirmation.
 
 - [x] **Task 5: MCP Database Verification**

@@ -4,10 +4,13 @@ gradlew
 gradlew.bat
 gradle/
 build/
+sqlserver/
+ignore/
+docker-compose.yml
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-
+**/*.log
 # IntelliJ IDEA
 .idea/
 *.iws

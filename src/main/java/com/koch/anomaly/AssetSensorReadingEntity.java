@@ -9,25 +9,25 @@ public class AssetSensorReadingEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ReadingID")
+    @Column(name = "readingid")
     private Integer readingId;
 
-    @Column(name = "AssetID", length = 50, nullable = false)
+    @Column(name = "assetid", length = 50, nullable = false)
     private String assetId;
 
-    @Column(name = "SensorType", length = 30, nullable = false)
+    @Column(name = "sensor_type", length = 30, nullable = false)
     private String sensorType;
 
-    @Column(name = "ReadingValue", nullable = false)
+    @Column(name = "reading_value", nullable = false)
     private Double readingValue;
 
-    @Column(name = "UOM", length = 10)
+    @Column(name = "uom", length = 10)
     private String uom;
 
-    @Column(name = "Timestamp")
+    @Column(name = "timestamp")
     private LocalDateTime timestamp;
 
-    @Column(name = "Status", length = 20)
+    @Column(name = "status", length = 20)
     private String status;
 
     public Integer getReadingId() {

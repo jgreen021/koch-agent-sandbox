@@ -1,0 +1,88 @@
+opencollection: "1.0.0"
+info:
+  name: Sensor API
+  version: "1.1.0"
+bundled: true
+config:
+  environments:
+    - name: local
+      variables:
+        - name: baseUrl
+          value: http://localhost:8080
+          enabled: true
+items:
+  - name: Get All Readings (Paginated)
+    type: http
+    info:
+      name: Get All Readings (Paginated)
+      seq: 1
+    http:
+      method: GET
+      url: "{{baseUrl}}/api/sensors/readings"
+      params:
+        - name: page
+          value: "0"
+          type: query
+          enabled: true
+        - name: size
+          value: "10"
+          type: query
+          enabled: true
+        - name: sort
+          value: "timestamp,desc"
+          type: query
+          enabled: true
+
+  - name: Filter by Asset and Status
+    type: http
+    info:
+      name: Filter by Asset and Status
+      seq: 2
+    http:
+      method: GET
+      url: "{{baseUrl}}/api/sensors/readings"
+      params:
+        - name: assetId
+          value: "KILN-01"
+          type: query
+          enabled: true
+        - name: status
+          value: "CRITICAL"
+          type: query
+          enabled: true
+
+  - name: Range Filter (Reading Value)
+    type: http
+    info:
+      name: Range Filter (Reading Value)
+      seq: 3
+    http:
+      method: GET
+      url: "{{baseUrl}}/api/sensors/readings"
+      params:
+        - name: minReadingValue
+          value: "120"
+          type: query
+          enabled: true
+        - name: maxReadingValue
+          value: "140"
+          type: query
+          enabled: true
+
+  - name: Timestamp Range Filter
+    type: http
+    info:
+      name: Timestamp Range Filter
+      seq: 4
+    http:
+      method: GET
+      url: "{{baseUrl}}/api/sensors/readings"
+      params:
+        - name: startTime
+          value: "2026-03-24T00:00:00"
+          type: query
+          enabled: true
+        - name: endTime
+          value: "2026-03-24T23:59:00"
+          type: query
+          enabled: true
