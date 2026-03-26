@@ -83,5 +83,5 @@ rules:
     - "Batch task completions to avoid redundant file writes."
   archive:
     - "Never delete the change directory."
-    - "Move the completed feature folder from `openspec/changes/` to `openspec/archive/` instead."
+    - "Move the completed feature folder from `openspec/changes/` to `openspec/changes/archive/` instead."
     - "Ensure all tasks.md files in the archive remain marked as [x]."
