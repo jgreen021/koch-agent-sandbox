@@ -4,7 +4,7 @@
 [Briefly describe the business value and technical goal.]
 
 ## Prerequisites
-- [e.g. The local MCP server is active and connected.]
+- The local MCP servers are active and connected.
 
 ## Execution Tasks
 

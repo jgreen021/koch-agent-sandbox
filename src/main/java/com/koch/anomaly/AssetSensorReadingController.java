@@ -28,11 +28,13 @@ public class AssetSensorReadingController {
 
     @PostMapping("/readings")
     @ResponseStatus(HttpStatus.CREATED)
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ROLE_OPERATOR')")
     public void postReading(@RequestBody AssetSensorReading reading) {
         producer.publishReading(reading);
     }
 
     @GetMapping("/readings")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ROLE_OPERATOR', 'ROLE_AUDITOR', 'ROLE_GATEWAY_ADMIN')")
     public ResponseEntity<Page<AssetSensorReading>> getReadings(
             Pageable pageable,
             @RequestParam(required = false) String assetId,

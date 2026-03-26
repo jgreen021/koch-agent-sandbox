@@ -51,7 +51,7 @@ public class AnomalyValidationService {
 
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public AnomalyStatus isAnomaly(AnomalyReading reading) {
-        String assetId = reading.getAssetId();
+        String assetId = reading.assetId();
         List<AnomalyReading> history = readingHistory.computeIfAbsent(assetId, k -> new CopyOnWriteArrayList<>());
 
         // If we don't have 10 readings yet, add the current one and return INSUFFICIENT_DATA
@@ -64,7 +64,7 @@ public class AnomalyValidationService {
         // Calculate average based on these 10 readings.
         double sum = 0.0;
         for (AnomalyReading r : history) {
-            sum += r.getReadingValue();
+            sum += r.readingValue();
         }
 
         double average = sum / history.size(); // history.size() is 10 here
@@ -81,13 +81,13 @@ public class AnomalyValidationService {
 
         if (average == 0.0) {
             // Safe fallback if average is somehow 0
-            if (reading.getReadingValue() > 120.0) {
+            if (reading.readingValue() > 120.0) {
                 result = AnomalyStatus.CRITICAL;
             }
         } else {
-            double deviationPercentage = Math.abs(reading.getReadingValue() - average) / average;
+            double deviationPercentage = Math.abs(reading.readingValue() - average) / average;
 
-            if (reading.getReadingValue() > 120.0) {
+            if (reading.readingValue() > 120.0) {
                 result = AnomalyStatus.CRITICAL;
             } else if (deviationPercentage >= 0.25) {
                 result = AnomalyStatus.CRITICAL;
@@ -98,16 +98,16 @@ public class AnomalyValidationService {
 
         if (result == AnomalyStatus.CRITICAL || result == AnomalyStatus.WARNING) {
             AssetSensorReadingEntity entity = new AssetSensorReadingEntity();
-            entity.setAssetId(reading.getAssetId());
-            entity.setReadingValue(reading.getReadingValue());
-            entity.setUom(reading.getUom());
-            entity.setSensorType(reading.getSensorType() != null ? reading.getSensorType() : "UNKNOWN");
+            entity.setAssetId(reading.assetId());
+            entity.setReadingValue(reading.readingValue());
+            entity.setUom(reading.uom());
+            entity.setSensorType(reading.sensorType() != null ? reading.sensorType() : "UNKNOWN");
             entity.setTimestamp(LocalDateTime.now());
             entity.setStatus(result.name());
             try {
                 repository.save(entity);
                 repository.flush();
-                logger.info("ALARM: {} - Value: {} - Saved to DB. Current DB Count: {}", result, reading.getReadingValue(), repository.count());
+                logger.info("ALARM: {} - Value: {} - Saved to DB. Current DB Count: {}", result, reading.readingValue(), repository.count());
             } catch (Exception e) {
                 logger.error("Failed to save anomaly reading to DB", e);
             }
@@ -116,7 +116,7 @@ public class AnomalyValidationService {
         if (result == AnomalyStatus.CRITICAL && kafkaTemplate != null) {
             try {
                 String payload = objectMapper.writeValueAsString(reading);
-                kafkaTemplate.send("active-alarms", reading.getAssetId(), payload);
+                kafkaTemplate.send("active-alarms", reading.assetId(), payload);
                 logger.info("Forwarded CRITICAL alarm to active-alarms topic.");
             } catch (JsonProcessingException e) {
                 logger.error("Failed to serialize reading to JSON", e);

@@ -39,9 +39,9 @@ public class KilnSensorConsumer {
         AnomalyStatus status = service.isAnomaly(reading);
 
         if (status == AnomalyStatus.NORMAL) {
-            logger.info("Reading OK: {}", reading.getReadingValue());
+            logger.info("Reading OK: {}", reading.readingValue());
         } else if (status == AnomalyStatus.WARNING || status == AnomalyStatus.CRITICAL) {
-            logger.warn("ALARM: {} - Value: {}", status, reading.getReadingValue());
+            logger.warn("ALARM: {} - Value: {}", status, reading.readingValue());
         }
     }
 }
