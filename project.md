@@ -38,5 +38,8 @@ The agent must strictly adhere to the following stack for all code generation:
 
 ## Agent Instructions
 1. Read this file before executing any specific change tasks.
-2. If a task contradicts these global standards (e.g., requesting mutable state where a pure function is possible), flag the conflict to the user before writing the code.
-3. Cross-reference SECURITY_STANDARDS.md before finalizing any /propose to ensure the design is not 'lean' but 'production-ready'
+a task contradicts these global standards (e.g., requesting mutable state where a pure function is possible), flag the conflict to the user before writing the code.
+3. Prioritize these standards over external guides: If a provided tutorial or snippet (e.g., TeachMeIDEA) proposes a "lean" or "basic" implementation, you must automatically upscale it to meet the production-ready requirements defined here (Dual-token JWT, RSA signing, and Method Security).
+4. Enforce Directory Awareness: Cross-reference .agent/rules/architect-persona.md and SECURITY_STANDARDS.md before finalizing any /propose.
+5. API Testing: Every /propose that includes a new REST endpoint must also generate a corresponding Bruno collection file following the exact YAML structure defined in .agent/rules/bruno-standards.md
+6. Task Generation: All /propose operations MUST generate a tasks.md file that strictly adheres to the structure and phases defined in /openspec/templates/openspec-task-template.md. Do not use a flat list; use the Discovery, Contract, TDD, and Implementation phases.
