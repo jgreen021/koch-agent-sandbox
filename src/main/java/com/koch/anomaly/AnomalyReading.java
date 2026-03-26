@@ -5,6 +5,7 @@ public class AnomalyReading {
     private String assetId;
     private double readingValue;
     private String uom;
+    private String sensorType;
 
     public AnomalyReading() {
     }
@@ -14,10 +15,17 @@ public class AnomalyReading {
         this.readingValue = readingValue;
     }
 
-    public AnomalyReading(String assetId, double readingValue, String uom) {
+    public AnomalyReading(String assetId, double readingValue, String sensorType) {
+        this.assetId = assetId;
+        this.readingValue = readingValue;
+        this.sensorType = sensorType;
+    }
+
+    public AnomalyReading(String assetId, double readingValue, String uom, String sensorType) {
         this.assetId = assetId;
         this.readingValue = readingValue;
         this.uom = uom;
+        this.sensorType = sensorType;
     }
 
     public String getAssetId() {
@@ -42,5 +50,13 @@ public class AnomalyReading {
 
     public void setUom(String uom) {
         this.uom = uom;
+    }
+
+    public String getSensorType() {
+        return sensorType;
+    }
+
+    public void setSensorType(String sensorType) {
+        this.sensorType = sensorType;
     }
 }

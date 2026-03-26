@@ -1,0 +1,34 @@
+opencollection: "1.0.0"
+info:
+  name: Sensor Producer API
+  version: "1.0.0"
+bundled: true
+config:
+  environments:
+    - name: local
+      variables:
+        - name: baseUrl
+          value: http://localhost:8080
+          enabled: true
+items:
+  - name: Post New Sensor Reading
+    type: http
+    info:
+      name: Post New Sensor Reading
+      seq: 1
+    http:
+      method: POST
+      url: "{{baseUrl}}/api/sensors/readings"
+      body: 
+         type: json
+         data: |-
+            {
+              "readingId": 1234,
+                "assetId": "KILN-BRUNO-01",
+                "sensorType": "TEMPERATURE",
+                "readingValue": 115.5,
+                "uom": "C",
+                "timestamp": "2026-03-25T17:23:00",
+                "status": "NORMAL"
+            }
+      auth: none

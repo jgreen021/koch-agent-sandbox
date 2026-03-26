@@ -125,6 +125,22 @@ public class AnomalyValidationServiceTest {
         verify(mockRepository, never()).save(any(AssetSensorReadingEntity.class));
     }
 
+    @Test
+    void testRepositorySave_CapturesSensorType() {
+        String assetId = "SENS-TYPE-TEST";
+        String sensorType = "VIBRATION";
+        primeHistory(validationService, assetId, 10, 100.0);
+        
+        // Critical trigger (Reading > 120)
+        validationService.isAnomaly(new AnomalyReading(assetId, 130.0, sensorType));
+        
+        ArgumentCaptor<AssetSensorReadingEntity> entityCaptor = ArgumentCaptor.forClass(AssetSensorReadingEntity.class);
+        verify(mockRepository).save(entityCaptor.capture());
+        
+        assertEquals(sensorType, entityCaptor.getValue().getSensorType(), 
+                "The saved entity must contain the sensorType from the original reading");
+    }
+
     private void primeHistory(AnomalyValidationService service, String assetId, int count, double value) {
         for (int i = 0; i < count; i++) {
             service.isAnomaly(new AnomalyReading(assetId, value));

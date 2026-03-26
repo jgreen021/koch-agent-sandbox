@@ -16,8 +16,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AssetSensorReadingController.class)
@@ -28,6 +30,9 @@ class AssetSensorReadingControllerTest {
 
     @MockBean
     private AssetSensorReadingRepository repository;
+
+    @MockBean
+    private KilnSensorProducer producer;
 
     @Test
     @DisplayName("GET /api/sensors/readings should return a paginated list of sensor readings")
@@ -135,10 +140,36 @@ class AssetSensorReadingControllerTest {
 
         // Act & Assert
         mockMvc.perform(get("/api/sensors/readings")
-                .param("startTime", "2026-03-24T00:00:00")
-                .param("endTime", "2026-03-24T23:59:00")
+                .param("startTime", startTime.toString())
+                .param("endTime", endTime.toString())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].assetId").value("KILN-04"));
+    }
+
+    @Test
+    @DisplayName("POST /api/sensors/readings should publish a reading and return 201 Created")
+    void postReading_ShouldPublishAndReturnCreated() throws Exception {
+        // Arrange
+        var timestamp = LocalDateTime.now();
+        String jsonPayload = """
+                {
+                    "readingId": 1,
+                    "assetId": "KILN-01",
+                    "sensorType": "TEMPERATURE",
+                    "readingValue": 105.5,
+                    "uom": "C",
+                    "timestamp": "%s",
+                    "status": "NORMAL"
+                }
+                """.formatted(timestamp.toString());
+
+        // Act & Assert
+        mockMvc.perform(post("/api/sensors/readings")
+                .content(jsonPayload)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+
+        verify(producer).publishReading(any(AssetSensorReading.class));
     }
 }

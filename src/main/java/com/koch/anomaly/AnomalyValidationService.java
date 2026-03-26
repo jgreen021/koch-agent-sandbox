@@ -101,7 +101,7 @@ public class AnomalyValidationService {
             entity.setAssetId(reading.getAssetId());
             entity.setReadingValue(reading.getReadingValue());
             entity.setUom(reading.getUom());
-            entity.setSensorType("UNKNOWN");
+            entity.setSensorType(reading.getSensorType() != null ? reading.getSensorType() : "UNKNOWN");
             entity.setTimestamp(LocalDateTime.now());
             entity.setStatus(result.name());
             try {

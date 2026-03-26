@@ -1,0 +1,87 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+context: |
+  Tech Stack:
+  - Language: Java 21 (record types for immutability)
+  - Framework: Spring Boot 3.x
+  - Messaging: Apache Kafka (Spring Kafka)
+  - Persistence: Azure SQL Database (Spring Data JPA)
+  - Build Tool: Gradle
+  - Environment: Docker / WSL 2
+
+  Core Principles:
+  - Functional Programming (pure functions, immutable domain models).
+  - TDD (write failing unit test first).
+  - Clean Code (SOLID, descriptive naming).
+  - Resilience (assume ingress data is "dirty").
+  - Data Contracts (Jackson ObjectMapper only).
+
+  Standard Specifications:
+  - JpaSpecificationExecutor for dynamic queries.
+  - Pageable/Sort for PrimeNG compatibility.
+
+# Artifact customizations (optional)
+# Override templates or add custom artifacts.
+artifacts:
+  tasks:
+    template: |
+      # OpenSpec Task List: {{name}}
+
+      ## Objective
+      [Briefly describe the business value and technical goal.]
+
+      ## Prerequisites
+      - [e.g. The local MCP server is active and connected.]
+
+      ## Execution Tasks
+
+      - [ ] **Task 1: Discovery & Inspection (MCP Phase)**
+        - Use MCP tools to inspect [Table Name/Existing Classes].
+        - Verify data types, constraints, and existing relationships.
+        - **Constraint:** Adhere to "Assume data is dirty" standard from project.md.
+
+      - [ ] **Task 2: Contract Definition (DTOs & Records)**
+        - Define Java `record` types for [Request/Response].
+        - Ensure Jackson annotations are used for JSON mapping.
+
+      - [ ] **Task 3: Test-Driven Development (TDD) Phase**
+        - Create `[ClassName]Test.java` using JUnit 5/MockMvc.
+        - Define the "Happy Path" and "Failure Case" (e.g., 404 or 400).
+
+      - [ ] **Task 4: Implementation (Repository & Logic)**
+        - Implement/Update Repository with `JpaSpecificationExecutor`.
+        - Implement Specifications in a generic factory.
+
+      - [ ] **Task 5: Controller & PrimeNG Integration**
+        - Create REST endpoints returning `ResponseEntity<Page<DTO>>`.
+        - Ensure pagination/sorting compatibility.
+
+      - [ ] **Task 6: Build & Verification**
+        - Run `./gradlew build` and `./gradlew test`.
+        - Generate supporting files, if applicable, for manual verification.
+
+      - [ ] **Task 7: Documentation**
+        - Update `openspec/changes/{{id}}/tasks.md` with the implementation details.
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+rules:
+  tasks:
+    - "Every task list must explicitly include a Task 1 for discovery/inspection via MCP tools."
+    - "Task lists must strictly follow the section hierarchy (Objective, Prerequisites, Execution Tasks)."
+    - "Maintain a clear separation between contract/DTO definition and business logic implementation."
+  apply:
+    - "Break implementation into small, incremental commits."
+    - "Wait for user confirmation after completing each major task in tasks.md."
+    - "If using MCP tools to scan the project, do so before writing any code."
+#    - "Do not update tasks.md until the entire implementation of a task is verified and stable."
+#    - "Batch all file updates into a single response to avoid recursive triggers."
+    - "Update tasks.md checkboxes from [ ] to [x] only after the associated code is verified."
+    - "Batch task completions to avoid redundant file writes."
+  archive:
+    - "Never delete the change directory."
+    - "Move the completed feature folder from `openspec/changes/` to `openspec/archive/` instead."
+    - "Ensure all tasks.md files in the archive remain marked as [x]."

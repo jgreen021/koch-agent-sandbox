@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +19,17 @@ import static com.koch.anomaly.SpecificationFactory.lessThanOrEqualTo;
 public class AssetSensorReadingController {
 
     private final AssetSensorReadingRepository repository;
+    private final KilnSensorProducer producer;
 
-    public AssetSensorReadingController(AssetSensorReadingRepository repository) {
+    public AssetSensorReadingController(AssetSensorReadingRepository repository, KilnSensorProducer producer) {
         this.repository = repository;
+        this.producer = producer;
+    }
+
+    @PostMapping("/readings")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void postReading(@RequestBody AssetSensorReading reading) {
+        producer.publishReading(reading);
     }
 
     @GetMapping("/readings")
