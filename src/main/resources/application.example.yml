@@ -1,0 +1,49 @@
+# ===================================================================
+# APPLICATION PROPERTIES TEMPLATE
+# ===================================================================
+# Copy this file to application.yml and replace placeholders with 
+# your actual local or environment-specific values. 
+# application.yml is ignored by git to prevent committing secrets.
+# ===================================================================
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+
+spring:
+  application:
+    name: koch-agent-sandbox
+
+  # -----------------------------------------------------------------
+  # Database Configuration (Oracle 23c / Azure SQL)
+  # -----------------------------------------------------------------
+  datasource:
+    url: ${DB_URL:jdbc:oracle:thin:@//localhost:1521/XEPDB1}
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD:admin}
+    driver-class-name: oracle.jdbc.OracleDriver
+    
+  # -----------------------------------------------------------------
+  # Kafka Configuration
+  # -----------------------------------------------------------------
+  kafka:
+    bootstrap-servers: ${KAFKA_BROKER:localhost:9092}
+    consumer:
+      group-id: anomaly-consumers
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+    # -----------------------------------------------------------------
+    # App-specific variables (e.g. RSA Keys)
+    # -----------------------------------------------------------------
+app:
+  security:
+    jwt:
+      public-key: ${RSA_PUBLIC_KEY:classpath:certs/public.pem}
+      private-key: ${RSA_PRIVATE_KEY:classpath:certs/private.pem}
+      access-token-expiration: 3600000  # 1 hour
+      refresh-token-expiration: 86400000 # 24 hours

@@ -4,7 +4,7 @@ gradlew
 gradlew.bat
 gradle/
 build/
-bruno/**
+bruno/.env
 .scratch/
 docker-compose.yml
 !gradle/wrapper/gradle-wrapper.jar

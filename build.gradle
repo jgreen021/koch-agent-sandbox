@@ -25,7 +25,7 @@ dependencies {
     implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-    implementation 'com.oracle.database.jdbc:ojdbc11'
+    implementation 'com.oracle.database.jdbc:ojdbc17'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -44,8 +44,3 @@ jacocoTestReport {
     }
 }
 
-// Temporary task for hash generation with direct classpath access
-task generateHash(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.koch.security.HashGenerator' // We'll create this file correctly now
-}
