@@ -4,8 +4,8 @@ gradlew
 gradlew.bat
 gradle/
 build/
-sqlserver/
-ignore/
+bruno/**
+.scratch/
 docker-compose.yml
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/

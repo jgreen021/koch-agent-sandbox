@@ -2,7 +2,7 @@ package com.koch.security;
 
 import com.koch.security.model.AuthRequest;
 import com.koch.security.model.AuthResponse;
-import com.koch.security.model.TokenRefreshRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -18,14 +18,10 @@ public class AuthController {
 
     private final AuthService authService;
     private final JwtDecoder jwtDecoder;
-    private final JwtService jwtService;
-    private final CustomUserDetailsService userDetailsService;
 
-    public AuthController(AuthService authService, JwtDecoder jwtDecoder, JwtService jwtService, CustomUserDetailsService userDetailsService) {
+    public AuthController(AuthService authService, JwtDecoder jwtDecoder) {
         this.authService = authService;
         this.jwtDecoder = jwtDecoder;
-        this.jwtService = jwtService;
-        this.userDetailsService = userDetailsService;
     }
 
     @PostMapping("/login")
@@ -34,18 +30,31 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(@RequestBody TokenRefreshRequest request) {
+    public ResponseEntity<AuthResponse> refresh(@RequestBody com.koch.security.model.TokenRefreshRequest request) {
         try {
             Jwt jwt = jwtDecoder.decode(request.refreshToken());
-            String username = jwt.getSubject();
-            var userDetails = userDetailsService.loadUserByUsername(username);
-            
-            String accessToken = jwtService.generateToken(userDetails, 15 * 60 * 1000);
-            String refreshToken = jwtService.generateToken(userDetails, 7 * 24 * 60 * 60 * 1000);
-
-            return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken, 900));
+            return ResponseEntity.ok(authService.refresh(jwt.getSubject()));
         } catch (JwtValidationException e) {
             return ResponseEntity.status(401).build();
         }
+    }
+
+    @PostMapping("/password")
+    public ResponseEntity<Void> changePassword(@RequestBody com.koch.security.model.PasswordChangeRequest request, 
+                                               java.security.Principal principal) {
+        authService.changePassword(principal.getName(), request.oldPassword(), request.newPassword());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestBody @Valid com.koch.security.model.PasswordResetRequest request) {
+        authService.processForgotPassword(request.username());
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody @Valid com.koch.security.model.PasswordResetCompleteRequest request) {
+        authService.resetPassword(request.token(), request.newPassword());
+        return ResponseEntity.ok().build();
     }
 }

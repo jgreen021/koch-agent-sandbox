@@ -30,11 +30,12 @@ public class AnomalyValidationService {
     public void init() {
         logger.info("AnomalyValidationService started. Connection URL: {}", env.getProperty("spring.datasource.url"));
         try {
-            String serverName = jdbcTemplate.queryForObject("SELECT @@SERVERNAME", String.class);
-            String dbName = jdbcTemplate.queryForObject("SELECT DB_NAME()", String.class);
-            logger.info("Connected to Server: {} - DB: {}", serverName, dbName);
+            // Updated for Oracle compatibility
+            String instanceName = jdbcTemplate.queryForObject("SELECT sys_context('USERENV', 'INSTANCE_NAME') FROM dual", String.class);
+            String dbName = jdbcTemplate.queryForObject("SELECT sys_context('USERENV', 'DB_NAME') FROM dual", String.class);
+            logger.info("Connected to Oracle Instance: {} - DB: {}", instanceName, dbName);
         } catch (Exception e) {
-            logger.error("Failed to fetch server/db name from JDBC", e);
+            logger.error("Failed to fetch Oracle metadata via JDBC", e);
         }
     }
 

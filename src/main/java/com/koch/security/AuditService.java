@@ -22,15 +22,15 @@ public class AuditService {
 
     @PostConstruct
     public void init() {
-        // Ensure audit_logs table exists
-        jdbcTemplate.execute("IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='audit_logs' AND xtype='U') " +
-                "CREATE TABLE audit_logs (" +
-                "id BIGINT IDENTITY(1,1) PRIMARY KEY, " +
-                "timestamp DATETIME2 NOT NULL, " +
-                "event NVARCHAR(100) NOT NULL, " +
-                "username NVARCHAR(255), " +
-                "path NVARCHAR(2000), " +
-                "reason NVARCHAR(MAX))");
+        // Ensure audit_logs table exists using Oracle 23c syntax
+        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS audit_logs (" +
+                "id NUMBER(19) GENERATED ALWAYS AS IDENTITY, " +
+                "timestamp TIMESTAMP(6) NOT NULL, " +
+                "event NVARCHAR2(100) NOT NULL, " +
+                "username NVARCHAR2(255), " +
+                "path NVARCHAR2(2000), " +
+                "reason NCLOB, " +
+                "CONSTRAINT pk_audit_logs PRIMARY KEY (id))");
     }
 
     @Async

@@ -22,7 +22,7 @@ public class AnomalyValidationServiceTest {
 
     @BeforeEach
     @SuppressWarnings("unchecked")
-    void setUp() {
+    public void setUp() {
         validationService = new AnomalyValidationService();
         mockRepository = Mockito.mock(AssetSensorReadingRepository.class);
         mockKafkaTemplate = Mockito.mock(KafkaTemplate.class);
@@ -86,8 +86,8 @@ public class AnomalyValidationServiceTest {
         AnomalyReading deserialized = objectMapper.readValue(sentJson, AnomalyReading.class);
         
         // Format-agnostic checking!
-        assertEquals(assetId, deserialized.getAssetId());
-        assertEquals(126.0, deserialized.getReadingValue());
+        assertEquals(assetId, deserialized.assetId());
+        assertEquals(126.0, deserialized.readingValue());
     }
 
     @Test

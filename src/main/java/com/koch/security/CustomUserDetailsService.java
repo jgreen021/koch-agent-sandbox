@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(CustomUserDetailsService.class);
     private final JdbcUserRepository userRepository;
 
     public CustomUserDetailsService(JdbcUserRepository userRepository) {
@@ -21,9 +22,14 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        logger.info("Loading user: {}", username);
         UserRecord userRecord = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+                .orElseThrow(() -> {
+                    logger.warn("User NOT found in DB: {}", username);
+                    return new UsernameNotFoundException("User not found: " + username);
+                });
 
+        logger.info("User found: {}, password hash: {}", username, userRecord.password().substring(0, 7) + "...");
         return new User(
                 userRecord.username(),
                 userRecord.password(),
