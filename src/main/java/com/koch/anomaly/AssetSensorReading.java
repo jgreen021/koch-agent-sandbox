@@ -26,4 +26,16 @@ public record AssetSensorReading(
                 entity.getStatus()
         );
     }
+
+    public AssetSensorReadingEntity toEntity() {
+        AssetSensorReadingEntity entity = new AssetSensorReadingEntity();
+        entity.setReadingId(this.readingId());
+        entity.setAssetId(this.assetId());
+        entity.setSensorType(this.sensorType());
+        entity.setReadingValue(this.readingValue());
+        entity.setUom(this.uom());
+        entity.setTimestamp(this.timestamp());
+        entity.setStatus(this.status());
+        return entity;
+    }
 }

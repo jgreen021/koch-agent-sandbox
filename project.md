@@ -11,6 +11,10 @@ The agent must strictly adhere to the following stack for all code generation:
 * **Persistence:** Oracle Database (Spring Data JPA)
 * **Build Tool:** Gradle
 * **Environment:** Docker / Windows Subsystem for Linux (WSL 2)
+* **Frontend:** Ionic Framework + Tailwind CSS
+* **Frontend State Management:** Zustand + TanStack Query
+* **Frontend Data Fetching:** Axios (inside TanStack Query)
+* **Frontend Architecture:** Custom React Hooks (e.g., useMonitoring)
 * **Global Standards:** Adhere to all constraints defined in /SECURITY_STANDARDS.md for every proposal.
 
 ## Architectural & Coding Standards
@@ -34,7 +38,7 @@ The agent must strictly adhere to the following stack for all code generation:
 
 ## Preferred Patterns
 * Persistence: Favor JpaSpecificationExecutor for dynamic queries to avoid repository bloat.
-* API: Use Pageable and Sort parameters for all collection endpoints to ensure frontend compatibility (PrimeNG).
+* API: Use Pageable and Sort parameters for all collection endpoints to ensure frontend compatibility.
 
 ## Agent Instructions
 1. Read this file before executing any specific change tasks.

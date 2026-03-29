@@ -36,7 +36,7 @@ public class AnomalyValidationServiceTest {
     @Test
     void testEvaluate_ColdStartRule_FewerThan10Readings() {
         String assetId = "ASSET-1";
-        
+
         primeHistory(validationService, assetId, 1, 100.0);
 
         assertEquals(AnomalyStatus.INSUFFICIENT_DATA, validationService.isAnomaly(new AnomalyReading(assetId, 110.0)),
@@ -46,7 +46,7 @@ public class AnomalyValidationServiceTest {
     @Test
     void testEvaluate_AbsoluteCeilingOverride_Exceeds120() {
         String assetId = "ASSET-2";
-        
+
         primeHistory(validationService, assetId, 10, 120.0);
 
         assertEquals(AnomalyStatus.CRITICAL, validationService.isAnomaly(new AnomalyReading(assetId, 120.1)),
@@ -71,39 +71,39 @@ public class AnomalyValidationServiceTest {
     void testKafkaDispatchOnCritical_UsesJacksonSerialization() throws Exception {
         String assetId = "ASSET-KAFKA";
         primeHistory(validationService, assetId, 10, 100.0);
-        
+
         // This evaluates to CRITICAL and triggers a Kafka send
         validationService.isAnomaly(new AnomalyReading(assetId, 126.0));
-        
+
         ArgumentCaptor<String> payloadCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(mockKafkaTemplate).send(
-            Mockito.eq("active-alarms"), 
-            Mockito.eq(assetId), 
-            payloadCaptor.capture()
+                Mockito.eq("active-alarms"),
+                Mockito.eq(assetId),
+                payloadCaptor.capture()
         );
-        
+
         String sentJson = payloadCaptor.getValue();
         AnomalyReading deserialized = objectMapper.readValue(sentJson, AnomalyReading.class);
-        
+
         // Format-agnostic checking!
         assertEquals(assetId, deserialized.assetId());
         assertEquals(126.0, deserialized.readingValue());
     }
 
     @Test
-    void testRepositorySave_CalledOnCriticalOrWarning() {
+    void testRepositorySave_OnlyCalledOnCritical() {
         String assetId = "ASSET-REPO-SAVE";
-        primeHistory(validationService, assetId, 10, 100.0); 
+        primeHistory(validationService, assetId, 10, 100.0);
         // Bypass testing the priming calls
         Mockito.clearInvocations(mockRepository);
 
-        // Warning trigger (15% diff)
+        // Warning trigger (15% diff) - Should NOT save anymore
         validationService.isAnomaly(new AnomalyReading(assetId, 115.0));
-        verify(mockRepository, Mockito.times(1)).save(any(AssetSensorReadingEntity.class));
-        
+        verify(mockRepository, never()).save(any(AssetSensorReadingEntity.class));
+
         Mockito.clearInvocations(mockRepository);
 
-        // Critical trigger (25% diff)
+        // Critical trigger (25% diff) - Should save
         validationService.isAnomaly(new AnomalyReading(assetId, 125.0));
         verify(mockRepository, Mockito.times(1)).save(any(AssetSensorReadingEntity.class));
     }
@@ -130,14 +130,14 @@ public class AnomalyValidationServiceTest {
         String assetId = "SENS-TYPE-TEST";
         String sensorType = "VIBRATION";
         primeHistory(validationService, assetId, 10, 100.0);
-        
+
         // Critical trigger (Reading > 120)
         validationService.isAnomaly(new AnomalyReading(assetId, 130.0, sensorType));
-        
+
         ArgumentCaptor<AssetSensorReadingEntity> entityCaptor = ArgumentCaptor.forClass(AssetSensorReadingEntity.class);
         verify(mockRepository).save(entityCaptor.capture());
-        
-        assertEquals(sensorType, entityCaptor.getValue().getSensorType(), 
+
+        assertEquals(sensorType, entityCaptor.getValue().getSensorType(),
                 "The saved entity must contain the sensorType from the original reading");
     }
 

@@ -19,6 +19,10 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
 
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.time.LocalDateTime;
 
 @Configuration
@@ -41,11 +45,13 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/api/auth/refresh", "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
-                        .requestMatchers("/api/auth/password").authenticated()
+                        .requestMatchers("/api/auth/password", "/api/auth/me").authenticated()
                         .requestMatchers("/api/sensors/readings").authenticated()
+                        .requestMatchers("/api/sensors/stream/**").authenticated()
                         .anyRequest().denyAll()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
+                        .bearerTokenResolver(bearerTokenResolver())
                         .jwt(jwt -> jwt.decoder(jwtDecoder()).jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 )
                 .exceptionHandling(ex -> ex
@@ -66,6 +72,19 @@ public class SecurityConfig {
                         .contentSecurityPolicy(cps -> cps.policyDirectives("default-src 'self'"))
                 )
                 .build();
+    }
+
+    @Bean
+    public BearerTokenResolver bearerTokenResolver() {
+        DefaultBearerTokenResolver defaultResolver = new DefaultBearerTokenResolver();
+        defaultResolver.setAllowUriQueryParameter(true);
+        return request -> {
+            String token = request.getParameter("token");
+            if (token != null && !token.isBlank()) {
+                return token;
+            }
+            return defaultResolver.resolve(request);
+        };
     }
 
     @Bean

@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
 
@@ -20,10 +21,12 @@ public class AssetSensorReadingController {
 
     private final AssetSensorReadingRepository repository;
     private final KilnSensorProducer producer;
+    private final SseConnectionManager sseConnectionManager;
 
-    public AssetSensorReadingController(AssetSensorReadingRepository repository, KilnSensorProducer producer) {
+    public AssetSensorReadingController(AssetSensorReadingRepository repository, KilnSensorProducer producer, SseConnectionManager sseConnectionManager) {
         this.repository = repository;
         this.producer = producer;
+        this.sseConnectionManager = sseConnectionManager;
     }
 
     @PostMapping("/readings")
@@ -65,5 +68,11 @@ public class AssetSensorReadingController {
                 .map(AssetSensorReading::fromEntity);
 
         return ResponseEntity.ok(readings);
+    }
+
+    @GetMapping(value = "/stream/{assetId}", produces = org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyAuthority('ROLE_OPERATOR', 'ROLE_AUDITOR', 'ROLE_GATEWAY_ADMIN')")
+    public SseEmitter streamReadings(@PathVariable String assetId) {
+        return sseConnectionManager.register(assetId);
     }
 }

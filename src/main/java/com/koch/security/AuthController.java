@@ -29,12 +29,21 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }
 
+    @org.springframework.web.bind.annotation.GetMapping("/me")
+    public ResponseEntity<String> me(java.security.Principal principal) {
+        if (principal == null) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(principal.getName());
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(@RequestBody com.koch.security.model.TokenRefreshRequest request) {
+        if (request.refreshToken() == null || request.refreshToken().isBlank()) {
+            return ResponseEntity.status(401).build();
+        }
         try {
             Jwt jwt = jwtDecoder.decode(request.refreshToken());
             return ResponseEntity.ok(authService.refresh(jwt.getSubject()));
-        } catch (JwtValidationException e) {
+        } catch (org.springframework.security.oauth2.jwt.JwtException e) {
             return ResponseEntity.status(401).build();
         }
     }

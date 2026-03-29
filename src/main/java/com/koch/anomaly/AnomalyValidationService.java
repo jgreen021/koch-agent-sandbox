@@ -97,7 +97,7 @@ public class AnomalyValidationService {
             }
         }
 
-        if (result == AnomalyStatus.CRITICAL || result == AnomalyStatus.WARNING) {
+        if (result == AnomalyStatus.CRITICAL) {
             AssetSensorReadingEntity entity = new AssetSensorReadingEntity();
             entity.setAssetId(reading.assetId());
             entity.setReadingValue(reading.readingValue());

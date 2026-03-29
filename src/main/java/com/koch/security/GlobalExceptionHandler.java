@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.security.core.AuthenticationException;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
@@ -23,6 +24,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleRateLimit(RateLimitExceededException ex, HttpServletRequest request) {
         logger.warn("Rate limit exceeded for path {}: {}", request.getServletPath(), ex.getMessage());
         return buildResponse(HttpStatus.TOO_MANY_REQUESTS, "Too Many Requests", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex, HttpServletRequest request) {
+        logger.warn("Authentication failed at {}: {}", request.getServletPath(), ex.getMessage());
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", "Invalid credentials", request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

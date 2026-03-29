@@ -38,6 +38,8 @@ class KilnSensorProducerTest {
         );
         String jsonValue = "{\"assetId\":\"KILN-01\",\"readingValue\":105.5}";
         when(objectMapper.writeValueAsString(reading)).thenReturn(jsonValue);
+        // Stub send to return a completed future to avoid NPE in whenComplete
+        when(kafkaTemplate.send(anyString(), anyString())).thenReturn(java.util.concurrent.CompletableFuture.completedFuture(null));
 
         // Act
         producer.publishReading(reading);

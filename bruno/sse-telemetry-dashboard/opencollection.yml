@@ -1,0 +1,40 @@
+opencollection: "1.0.0"
+info:
+  name: SSE Telemetry Dashboard
+  version: "1.0.0"
+bundled: true
+config:
+  environments:
+    - name: local
+      variables:
+        - name: baseUrl
+          value: http://localhost:8080
+          enabled: true
+        - name: token
+          value: jwt-token-here
+          enabled: true
+items:
+  - name: Subscribe to Kiln Telemetry (SSE)
+    type: http
+    info:
+      name: Subscribe to Kiln Telemetry (SSE)
+      seq: 1
+      tags:
+        - sse
+        - telemetry
+    http:
+      method: GET
+      url: "{{baseUrl}}/api/sensors/stream/K-01"
+      headers:
+        - name: Accept
+          value: text/event-stream
+          disabled: false
+      auth:
+        type: bearer
+        token: "{{token}}"
+    settings:
+      timeout: 0
+    docs: |-
+      # Subscribe to Kiln Telemetry
+      Connects via Server-Sent Events to receive real-time temperature telemetry for a specified kiln.
+      Ensure you have a valid Bearer token.

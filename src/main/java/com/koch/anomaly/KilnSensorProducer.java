@@ -22,11 +22,15 @@ public class KilnSensorProducer {
     public void publishReading(AssetSensorReading reading) {
         try {
             String payload = objectMapper.writeValueAsString(reading);
-            logger.info("Publishing sensor reading to Kafka: {}", payload);
-            kafkaTemplate.send("kiln-sensor-readings", payload);
+            kafkaTemplate.send("kiln-sensor-readings", payload).whenComplete((result, ex) -> {
+                if (ex == null) {
+                    logger.debug("Successfully published sensor reading to Kafka: {}", payload);
+                } else {
+                    logger.error("Failed to publish reading to Kafka due to broker error", ex);
+                }
+            });
         } catch (JsonProcessingException e) {
             logger.error("Failed to serialize AssetSensorReading: {}", reading, e);
-            throw new RuntimeException("Serialization failure", e);
         }
     }
 }

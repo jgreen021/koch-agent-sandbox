@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AssetSensorReadingController.class)
-@Import({SecurityConfig.class, RsaKeyService.class})
+@Import({SecurityConfig.class, RsaKeyService.class, AuditService.class})
 @WithMockUser(roles = "OPERATOR")
 class AssetSensorReadingControllerTest {
 
@@ -44,6 +44,9 @@ class AssetSensorReadingControllerTest {
     @MockitoBean
     @SuppressWarnings("unused")
     private AuditService auditService;
+
+    @MockitoBean
+    private SseConnectionManager sseConnectionManager;
 
     @Test
     @DisplayName("GET /api/sensors/readings should return a paginated list of sensor readings")
@@ -182,5 +185,17 @@ class AssetSensorReadingControllerTest {
                 .andExpect(status().isCreated());
 
         verify(producer).publishReading(any(AssetSensorReading.class));
+    }
+
+    @Test
+    @DisplayName("GET /api/sensors/stream/{kilnId} should return SseEmitter stream")
+    void getSensorStream_ShouldReturnSseEmitter() throws Exception {
+        when(sseConnectionManager.register("KILN-01")).thenReturn(new org.springframework.web.servlet.mvc.method.annotation.SseEmitter());
+
+        mockMvc.perform(get("/api/sensors/stream/KILN-01")
+                .accept(MediaType.TEXT_EVENT_STREAM))
+                .andExpect(status().isOk());
+
+        verify(sseConnectionManager).register("KILN-01");
     }
 }
