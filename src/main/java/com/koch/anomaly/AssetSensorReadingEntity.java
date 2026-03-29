@@ -1,5 +1,6 @@
 package com.koch.anomaly;
 
+import com.koch.anomaly.util.EncryptionConverter;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -18,7 +19,8 @@ public class AssetSensorReadingEntity {
     @Column(name = "sensor_type", length = 30, nullable = false)
     private String sensorType;
 
-    @Column(name = "reading_value", nullable = false)
+    @Convert(converter = EncryptionConverter.class)
+    @Column(name = "reading_value", length = 500, nullable = false)
     private Double readingValue;
 
     @Column(name = "uom", length = 10)

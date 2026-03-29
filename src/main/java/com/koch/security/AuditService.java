@@ -35,7 +35,12 @@ public class AuditService {
 
     @Async
     public void logFailure(String event, String username, String path, String reason) {
-        AuditLogRecord audit = new AuditLogRecord(LocalDateTime.now(), event, username, path, reason);
+        logEvent("FAILURE_" + event, username, path, reason);
+    }
+
+    @Async
+    public void logEvent(String event, String username, String path, String details) {
+        AuditLogRecord audit = new AuditLogRecord(LocalDateTime.now(), event, username, path, details);
         saveAudit(audit);
     }
 

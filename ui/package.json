@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test.e2e": "cypress run",
     "test.unit": "vitest",
-    "lint": "eslint"
+    "lint": "eslint",
+    "start": "npm --prefix ui run dev"
   },
   "dependencies": {
     "@capacitor/app": "8.1.0",

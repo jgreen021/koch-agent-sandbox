@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useIonToast } from '@ionic/react';
 import { useAppStore } from '../store/useAppStore';
 import axios from 'axios';
+import { cloudOfflineOutline, cloudDoneOutline } from 'ionicons/icons';
 
 export type ConnectionState = 'Empty' | 'Loading' | 'Connected' | 'Reconnecting';
 
@@ -19,20 +21,33 @@ export function useMonitoring(kilnId: string | undefined, token: string | undefi
     const queryClient = useQueryClient();
     const setToken = useAppStore(state => state.setToken);
     const [connectionState, setConnectionState] = useState<ConnectionState>('Empty');
+    const [present] = useIonToast();
+    const presentRef = useRef(present);
+    const setTokenRef = useRef(setToken);
+    const mountedRef = useRef(true);
+
+    // Keep refs in sync
+    useEffect(() => {
+        presentRef.current = present;
+        setTokenRef.current = setToken;
+    }, [present, setToken]);
 
     useEffect(() => {
+        mountedRef.current = true;
         if (!kilnId || !token) {
-            setConnectionState('Empty');
+            setConnectionState(prev => prev !== 'Empty' ? 'Empty' : prev);
             return;
         }
 
         let eventSource: EventSource | null = null;
         let reconnectTimeout: ReturnType<typeof setTimeout>;
         let watchdogInterval: ReturnType<typeof setInterval>;
+        let toastTimeout: ReturnType<typeof setTimeout>;
         let lastActivityTime = Date.now();
         let isInitialLoad = true;
 
         const connect = async () => {
+            if (!mountedRef.current || !token) return;
             if (eventSource) eventSource.close();
             
             if (isInitialLoad) {
@@ -40,17 +55,45 @@ export function useMonitoring(kilnId: string | undefined, token: string | undefi
                 isInitialLoad = false;
             } else {
                 setConnectionState('Reconnecting');
+                // Wait 5s before showing reconnecting toast to avoid flickering
+                clearTimeout(toastTimeout);
+                toastTimeout = setTimeout(() => {
+                    if (mountedRef.current) {
+                        presentRef.current({
+                            message: `Connection lost. Attempting to reconnect to ${kilnId}...`,
+                            duration: 3000,
+                            color: 'warning',
+                            icon: cloudOfflineOutline,
+                            position: 'bottom'
+                        });
+                    }
+                }, 5000);
             }
 
             // Include token in query param due to EventSource limitations
             eventSource = new EventSource(`/api/sensors/stream/${kilnId}?token=${encodeURIComponent(token)}`);
 
             eventSource.onopen = () => {
+                if (!mountedRef.current) {
+                    eventSource?.close();
+                    return;
+                }
                 lastActivityTime = Date.now();
+                clearTimeout(toastTimeout);
+                if (connectionState === 'Reconnecting') {
+                    presentRef.current({
+                        message: 'Connection restored.',
+                        duration: 2000,
+                        color: 'success',
+                        icon: cloudDoneOutline,
+                        position: 'bottom'
+                    });
+                }
                 setConnectionState('Connected');
             };
 
             eventSource.onmessage = (event) => {
+                if (!mountedRef.current) return;
                 lastActivityTime = Date.now();
                 setConnectionState('Connected');
                 try {
@@ -68,6 +111,14 @@ export function useMonitoring(kilnId: string | undefined, token: string | undefi
             };
 
             eventSource.onerror = async () => {
+                if (!mountedRef.current || !token) {
+                    if (eventSource) {
+                        eventSource.close();
+                        eventSource = null;
+                    }
+                    return;
+                }
+
                 setConnectionState('Reconnecting');
                 if (eventSource) {
                     eventSource.close();
@@ -78,13 +129,17 @@ export function useMonitoring(kilnId: string | undefined, token: string | undefi
                 try {
                     await axios.get('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
                     // If we reached here, the token is fine, likely a server restart or network issue.
-                    clearTimeout(reconnectTimeout);
-                    reconnectTimeout = setTimeout(connect, 3000);
+                    if (mountedRef.current && token) {
+                        clearTimeout(reconnectTimeout);
+                        reconnectTimeout = setTimeout(connect, 3000);
+                    }
                 } catch (err: any) {
                     if (err.response?.status === 401) {
                         console.error("JWT token invalidated. Redirecting to login.");
-                        setToken(undefined); // This triggers the Dashboard redirect
-                    } else {
+                        if (mountedRef.current && token) {
+                            setTokenRef.current(undefined); // This triggers the Dashboard redirect
+                        }
+                    } else if (mountedRef.current && token) {
                         // Generic network error, retry
                         clearTimeout(reconnectTimeout);
                         reconnectTimeout = setTimeout(connect, 5000);
@@ -95,6 +150,7 @@ export function useMonitoring(kilnId: string | undefined, token: string | undefi
 
         // Watchdog: Server pings every 15s. If we hear nothing for 30s, the connection is zombie.
         watchdogInterval = setInterval(() => {
+            if (!mountedRef.current) return;
             const silenceDuration = Date.now() - lastActivityTime;
             if (silenceDuration > 35000) {
                 if (eventSource) {
@@ -107,13 +163,15 @@ export function useMonitoring(kilnId: string | undefined, token: string | undefi
         connect();
 
         return () => {
+            mountedRef.current = false;
             clearTimeout(reconnectTimeout);
+            clearTimeout(toastTimeout);
             clearInterval(watchdogInterval);
             if (eventSource) {
                 eventSource.close();
             }
         };
-    }, [kilnId, token, queryClient, setToken]);
+    }, [kilnId, token, queryClient]);
 
     return { connectionState };
 }

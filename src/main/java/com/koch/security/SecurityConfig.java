@@ -1,6 +1,6 @@
 package com.koch.security;
 
-import com.koch.security.model.AuditLogRecord;
+import com.koch.security.filter.WebAuditFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,7 +18,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
-
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,10 +32,12 @@ public class SecurityConfig {
 
     private final RsaKeyService rsaKeyService;
     private final AuditService auditService;
+    private final WebAuditFilter webAuditFilter;
 
-    public SecurityConfig(RsaKeyService rsaKeyService, AuditService auditService) {
+    public SecurityConfig(RsaKeyService rsaKeyService, AuditService auditService, WebAuditFilter webAuditFilter) {
         this.rsaKeyService = rsaKeyService;
         this.auditService = auditService;
+        this.webAuditFilter = webAuditFilter;
     }
 
     @Bean
@@ -45,6 +47,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/api/auth/refresh", "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/auth/password", "/api/auth/me").authenticated()
                         .requestMatchers("/api/sensors/readings").authenticated()
                         .requestMatchers("/api/sensors/stream/**").authenticated()
@@ -54,6 +57,7 @@ public class SecurityConfig {
                         .bearerTokenResolver(bearerTokenResolver())
                         .jwt(jwt -> jwt.decoder(jwtDecoder()).jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 )
+                .addFilterAfter(webAuditFilter, AuthorizationFilter.class)
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             auditService.logFailure("AUTH_FAILURE", null, request.getServletPath(), authException.getMessage());

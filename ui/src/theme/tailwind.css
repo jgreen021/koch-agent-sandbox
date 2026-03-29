@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Suppress browser-native password icons to prevent double-toggle */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+/* Ensure flex centering works correctly in Ionic content */
+ion-content.ion-padding::part(scroll) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}

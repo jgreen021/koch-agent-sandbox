@@ -34,7 +34,7 @@ public class AnomalyValidationService {
             String instanceName = jdbcTemplate.queryForObject("SELECT sys_context('USERENV', 'INSTANCE_NAME') FROM dual", String.class);
             String dbName = jdbcTemplate.queryForObject("SELECT sys_context('USERENV', 'DB_NAME') FROM dual", String.class);
             logger.info("Connected to Oracle Instance: {} - DB: {}", instanceName, dbName);
-        } catch (Exception e) {
+        } catch (org.springframework.dao.DataAccessException e) {
             logger.error("Failed to fetch Oracle metadata via JDBC", e);
         }
     }
@@ -47,6 +47,9 @@ public class AnomalyValidationService {
 
     @Autowired
     private AssetSensorReadingRepository repository;
+
+    @Autowired
+    private com.koch.security.AuditService auditService;
 
     private final Map<String, List<AnomalyReading>> readingHistory = new ConcurrentHashMap<>();
 
@@ -95,6 +98,13 @@ public class AnomalyValidationService {
             } else if (deviationPercentage >= 0.15) {
                 result = AnomalyStatus.WARNING;
             }
+        }
+
+        // Event Sourcing Light: Log detection event to Audit Log
+        if (result != AnomalyStatus.NORMAL && result != AnomalyStatus.INSUFFICIENT_DATA) {
+            String details = String.format("Asset: %s, Value: %.2f, Type: %s", 
+                                          reading.assetId(), reading.readingValue(), reading.sensorType());
+            auditService.logEvent("ANOMALY_DETECTED_" + result.name(), "SYSTEM", "/api/sensors/anomaly", details);
         }
 
         if (result == AnomalyStatus.CRITICAL) {
