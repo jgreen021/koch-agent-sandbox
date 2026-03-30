@@ -1,5 +1,3 @@
-Perfect. Here's a `CODE_REVIEW_GUIDELINES.md` file that captures the review style from the excellent reference you shared:
-
 ```markdown
 # Code Review Guidelines
 
