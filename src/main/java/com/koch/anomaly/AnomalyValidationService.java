@@ -22,6 +22,18 @@ public class AnomalyValidationService {
 
     @Autowired
     private org.springframework.core.env.Environment env;
+    
+    @org.springframework.beans.factory.annotation.Value("${app.anomaly.critical-threshold:120.0}")
+    private double criticalThreshold;
+
+    @org.springframework.beans.factory.annotation.Value("${app.anomaly.critical-deviation:0.25}")
+    private double criticalDeviation;
+
+    @org.springframework.beans.factory.annotation.Value("${app.anomaly.warning-deviation:0.15}")
+    private double warningDeviation;
+
+    @org.springframework.beans.factory.annotation.Value("${app.anomaly.history-size:10}")
+    private int historySize;
 
     @Autowired
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
@@ -51,15 +63,29 @@ public class AnomalyValidationService {
     @Autowired
     private com.koch.security.AuditService auditService;
 
-    private final Map<String, List<AnomalyReading>> readingHistory = new ConcurrentHashMap<>();
+    private final com.google.common.cache.LoadingCache<String, List<AnomalyReading>> readingHistory = 
+        com.google.common.cache.CacheBuilder.newBuilder()
+            .maximumSize(10000)
+            .expireAfterAccess(24, java.util.concurrent.TimeUnit.HOURS)
+            .build(new com.google.common.cache.CacheLoader<>() {
+                @Override
+                public List<AnomalyReading> load(String key) {
+                    return new java.util.concurrent.CopyOnWriteArrayList<>();
+                }
+            });
 
-    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public AnomalyStatus isAnomaly(AnomalyReading reading) {
         String assetId = reading.assetId();
-        List<AnomalyReading> history = readingHistory.computeIfAbsent(assetId, k -> new CopyOnWriteArrayList<>());
-
-        // If we don't have 10 readings yet, add the current one and return INSUFFICIENT_DATA
-        if (history.size() < 10) {
+        List<AnomalyReading> history;
+        try {
+            history = readingHistory.get(assetId);
+        } catch (java.util.concurrent.ExecutionException e) {
+            logger.error("Failed to load reading history from cache for asset: {}", assetId, e);
+            history = new java.util.concurrent.CopyOnWriteArrayList<>();
+        }
+        // If we don't have enough readings yet, add the current one and return INSUFFICIENT_DATA
+        if (history.size() < historySize) {
             history.add(reading);
             return AnomalyStatus.INSUFFICIENT_DATA;
         }
@@ -73,11 +99,9 @@ public class AnomalyValidationService {
 
         double average = sum / history.size(); // history.size() is 10 here
 
-        // Now, add the new reading and trim the history to keep only the last 10.
-        // This ensures that for the *next* call, 'history' will contain the current reading
-        // and the 9 previous ones.
+        // Now, add the new reading and trim the history to keep only the last configured size.
         history.add(reading);
-        if (history.size() > 10) {
+        if (history.size() > historySize) {
             history.remove(0); // Remove the oldest reading
         }
 
@@ -85,26 +109,26 @@ public class AnomalyValidationService {
 
         if (average == 0.0) {
             // Safe fallback if average is somehow 0
-            if (reading.readingValue() > 120.0) {
+            if (reading.readingValue() > criticalThreshold) {
                 result = AnomalyStatus.CRITICAL;
             }
         } else {
             double deviationPercentage = Math.abs(reading.readingValue() - average) / average;
 
-            if (reading.readingValue() > 120.0) {
+            if (reading.readingValue() > criticalThreshold) {
                 result = AnomalyStatus.CRITICAL;
-            } else if (deviationPercentage >= 0.25) {
+            } else if (deviationPercentage >= criticalDeviation) {
                 result = AnomalyStatus.CRITICAL;
-            } else if (deviationPercentage >= 0.15) {
+            } else if (deviationPercentage >= warningDeviation) {
                 result = AnomalyStatus.WARNING;
             }
         }
 
         // Event Sourcing Light: Log detection event to Audit Log
-        if (result != AnomalyStatus.NORMAL && result != AnomalyStatus.INSUFFICIENT_DATA) {
+        if (result == AnomalyStatus.CRITICAL || result == AnomalyStatus.WARNING) {
             String details = String.format("Asset: %s, Value: %.2f, Type: %s", 
                                           reading.assetId(), reading.readingValue(), reading.sensorType());
-            auditService.logEvent("ANOMALY_DETECTED_" + result.name(), "SYSTEM", "/api/sensors/anomaly", details);
+            auditService.logEvent("ANOMALY_" + result.name(), "SYSTEM", "/api/sensors/anomaly", details);
         }
 
         if (result == AnomalyStatus.CRITICAL) {

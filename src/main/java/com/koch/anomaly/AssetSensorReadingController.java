@@ -32,7 +32,7 @@ public class AssetSensorReadingController {
     @PostMapping("/readings")
     @ResponseStatus(HttpStatus.CREATED)
     @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ROLE_OPERATOR')")
-    public void postReading(@RequestBody AssetSensorReading reading) {
+    public void postReading(@jakarta.validation.Valid @RequestBody AssetSensorReading reading) {
         producer.publishReading(reading);
     }
 

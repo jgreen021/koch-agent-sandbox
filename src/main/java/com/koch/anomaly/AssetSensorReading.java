@@ -1,5 +1,8 @@
 package com.koch.anomaly;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 /**
@@ -8,10 +11,20 @@ import java.time.LocalDateTime;
  */
 public record AssetSensorReading(
     Integer readingId,
+    
+    @NotBlank(message = "Asset ID is required")
     String assetId,
+    
+    @NotBlank(message = "Sensor type is required")
     String sensorType,
+    
+    @NotNull(message = "Reading value is required")
+    @Min(value = 0, message = "Reading value must be non-negative")
     Double readingValue,
+    
+    @NotBlank(message = "UOM is required")
     String uom,
+    
     LocalDateTime timestamp,
     String status
 ) {

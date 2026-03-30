@@ -18,6 +18,7 @@ public class AnomalyValidationServiceTest {
     private AnomalyValidationService validationService;
     private AssetSensorReadingRepository mockRepository;
     private KafkaTemplate<String, String> mockKafkaTemplate;
+    private com.koch.security.AuditService mockAuditService;
     private ObjectMapper objectMapper;
 
     @BeforeEach
@@ -26,11 +27,19 @@ public class AnomalyValidationServiceTest {
         validationService = new AnomalyValidationService();
         mockRepository = Mockito.mock(AssetSensorReadingRepository.class);
         mockKafkaTemplate = Mockito.mock(KafkaTemplate.class);
+        mockAuditService = Mockito.mock(com.koch.security.AuditService.class);
         objectMapper = new ObjectMapper();
 
         ReflectionTestUtils.setField(validationService, "repository", mockRepository);
         ReflectionTestUtils.setField(validationService, "kafkaTemplate", mockKafkaTemplate);
+        ReflectionTestUtils.setField(validationService, "auditService", mockAuditService);
         ReflectionTestUtils.setField(validationService, "objectMapper", objectMapper);
+
+        // Set default thresholds for tests
+        ReflectionTestUtils.setField(validationService, "criticalThreshold", 120.0);
+        ReflectionTestUtils.setField(validationService, "criticalDeviation", 0.25);
+        ReflectionTestUtils.setField(validationService, "warningDeviation", 0.15);
+        ReflectionTestUtils.setField(validationService, "historySize", 10);
     }
 
     @Test

@@ -15,6 +15,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.koch.security.exception.TokenGenerationException;
+
 @Service
 public class JwtService {
 
@@ -48,7 +50,7 @@ public class JwtService {
 
             return signedJWT.serialize();
         } catch (JOSEException e) {
-            throw new RuntimeException("Failed to sign JWT with RSA", e);
+            throw new TokenGenerationException("Failed to sign JWT with RSA", e);
         }
     }
 }

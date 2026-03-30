@@ -41,6 +41,12 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, "Bad Request", message, request);
     }
 
+    @ExceptionHandler({org.springframework.security.authorization.AuthorizationDeniedException.class, org.springframework.security.access.AccessDeniedException.class})
+    public ResponseEntity<ErrorResponse> handleAuthorization(Exception ex, HttpServletRequest request) {
+        logger.warn("Access denied at {}: {}", request.getServletPath(), ex.getMessage());
+        return buildResponse(HttpStatus.FORBIDDEN, "Forbidden", "You do not have permission to access this resource", request);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntime(RuntimeException ex, HttpServletRequest request) {
         logger.error("Internal service error at {}: {}", request.getServletPath(), ex.getMessage(), ex);

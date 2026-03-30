@@ -5,6 +5,7 @@ import { IonReactRouter } from '@ionic/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import ResetPassword from './pages/ResetPassword';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAppStore } from './store/useAppStore';
@@ -66,6 +67,9 @@ const App: React.FC = () => {
               <ProtectedRoute exact path="/dashboard" component={Dashboard} requiredRoles={['OPERATOR', 'ADMIN']} />
               <Route exact path="/login">
                 <Login />
+              </Route>
+              <Route exact path="/reset-password">
+                <ResetPassword />
               </Route>
               <Route exact path="/home">
                 <Redirect to="/login" />

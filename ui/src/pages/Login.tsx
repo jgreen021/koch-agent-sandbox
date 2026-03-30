@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonItem, IonLabel, IonInput, IonInputPasswordToggle, IonText, useIonRouter, useIonAlert, useIonToast } from '@ionic/react';
 import axios, { AxiosError } from 'axios';
+import api from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 
 interface ErrorResponse {
@@ -13,7 +14,7 @@ const Login: React.FC = () => {
     const [username, setUsername] = useState(savedUsername || '');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const setToken = useAppStore(state => state.setToken);
+    const setTokens = useAppStore(state => state.setTokens);
     const setUserRole = useAppStore(state => state.setUserRole);
     const darkMode = useAppStore(state => state.darkMode);
     const router = useIonRouter();
@@ -54,14 +55,17 @@ const Login: React.FC = () => {
         e.preventDefault();
         setError('');
         try {
-            const response = await axios.post('/api/auth/login', { username, password });
+            const response = await api.post('/api/auth/login', { username, password });
             if (response.data && response.data.accessToken) {
                 setSavedUsername(username);
-                const token = response.data.accessToken;
+                const { accessToken, refreshToken, expiresIn } = response.data;
                 
                 // Extract claims from token
-                const { role, exp } = extractClaimsFromToken(token);
-                setToken(token, exp);
+                const { role, exp } = extractClaimsFromToken(accessToken);
+                
+                // expiry is relative
+                const absoluteExpiry = expiresIn ? Math.floor(Date.now() / 1000) + expiresIn : exp;
+                setTokens(accessToken, refreshToken, absoluteExpiry);
                 setUserRole(role);
                 
                 router.push('/dashboard', 'root');
@@ -146,10 +150,14 @@ const Login: React.FC = () => {
                                                 { text: 'Cancel', role: 'cancel' },
                                                 {
                                                     text: 'Send Reset Link',
-                                                    handler: async (data) => {
+                                                     handler: async (data) => {
                                                         try {
-                                                            await axios.post('/api/auth/forgot-password', { username: data.resetUsername });
-                                                            presentToast({ message: 'Password reset instructions sent (if account exists).', duration: 3000, color: 'success' });
+                                                            await api.post('/api/auth/forgot-password', { username: data.resetUsername });
+                                                            presentToast({ 
+                                                                message: 'Reset token generated! Check server logs and visit /reset-password?token=<TOKEN>', 
+                                                                duration: 8000, 
+                                                                color: 'success' 
+                                                            });
                                                         } catch (err: unknown) {
                                                             const axiosErr = err as AxiosError<ErrorResponse>;
                                                             const errMsg = axiosErr.response?.data?.message || 'Failed to send reset request.';

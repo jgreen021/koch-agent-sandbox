@@ -74,7 +74,7 @@ public class AuthService {
         }
         
         userRepository.updatePassword(username, passwordEncoder.encode(newPassword));
-        auditService.logFailure("PASSWORD_CHANGE_SUCCESS", username, "/api/auth/password", "Success");
+        auditService.logSuccess("PASSWORD_CHANGE", username, "/api/auth/password", "Update successful");
     }
 
     public AuthResponse refresh(String username) {
@@ -114,7 +114,7 @@ public class AuthService {
             
             // Simulation: Log to console for development
             logger.info("Password reset token for {}: {}", username, token);
-            auditService.logFailure("FORGOT_PASSWORD_REQUEST", username, "/api/auth/forgot-password", "Token generated");
+            auditService.logSuccess("FORGOT_PASSWORD_REQUEST", username, "/api/auth/forgot-password", "Token generated successfully");
         } else {
             // Masking: Log but don't reveal user existence
             auditService.logFailure("FORGOT_PASSWORD_REQUEST_GHOST", username, "/api/auth/forgot-password", "User not found");
@@ -139,7 +139,7 @@ public class AuthService {
         userRepository.updatePassword(user.username(), passwordEncoder.encode(newPassword));
         resetTokenRepository.markAsUsed(tokenValue);
         
-        auditService.logFailure("PASSWORD_RESET_SUCCESS", user.username(), "/api/auth/reset-password", "Success");
+        auditService.logSuccess("PASSWORD_RESET", user.username(), "/api/auth/reset-password", "Reset successful");
     }
 
     private String generateSecureToken() {

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useIonToast } from '@ionic/react';
 import { useAppStore } from '../store/useAppStore';
+import api from '../services/api';
 import axios from 'axios';
 import { cloudOfflineOutline, cloudDoneOutline } from 'ionicons/icons';
 
@@ -19,18 +20,18 @@ export interface AssetSensorReading {
 
 export function useMonitoring(kilnId: string | undefined, token: string | undefined) {
     const queryClient = useQueryClient();
-    const setToken = useAppStore(state => state.setToken);
+    const clearAuth = useAppStore(state => state.clearAuth);
     const [connectionState, setConnectionState] = useState<ConnectionState>('Empty');
     const [present] = useIonToast();
     const presentRef = useRef(present);
-    const setTokenRef = useRef(setToken);
+    const clearAuthRef = useRef(clearAuth);
     const mountedRef = useRef(true);
 
     // Keep refs in sync
     useEffect(() => {
         presentRef.current = present;
-        setTokenRef.current = setToken;
-    }, [present, setToken]);
+        clearAuthRef.current = clearAuth;
+    }, [present, clearAuth]);
 
     useEffect(() => {
         mountedRef.current = true;
@@ -127,7 +128,7 @@ export function useMonitoring(kilnId: string | undefined, token: string | undefi
                 
                 // AUTH PROBE: Check if the failure is due to an invalid token
                 try {
-                    await axios.get('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+                    await api.get('/api/auth/me');
                     // If we reached here, the token is fine, likely a server restart or network issue.
                     if (mountedRef.current && token) {
                         clearTimeout(reconnectTimeout);
@@ -135,9 +136,9 @@ export function useMonitoring(kilnId: string | undefined, token: string | undefi
                     }
                 } catch (err: any) {
                     if (err.response?.status === 401) {
-                        console.error("JWT token invalidated. Redirecting to login.");
+                        console.error("JWT token invalidated and refresh failed. Redirecting to login.");
                         if (mountedRef.current && token) {
-                            setTokenRef.current(undefined); // This triggers the Dashboard redirect
+                            clearAuthRef.current(); // This triggers the Dashboard redirect
                         }
                     } else if (mountedRef.current && token) {
                         // Generic network error, retry

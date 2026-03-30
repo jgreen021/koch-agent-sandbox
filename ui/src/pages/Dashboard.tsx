@@ -21,13 +21,13 @@ const StatusBadge: React.FC<{ state: ConnectionState }> = React.memo(({ state })
 
 const Dashboard: React.FC = () => {
     const token = useAppStore(state => state.token);
-    const setToken = useAppStore(state => state.setToken);
+    const clearAuth = useAppStore(state => state.clearAuth);
     const darkMode = useAppStore(state => state.darkMode);
     const toggleDarkMode = useAppStore(state => state.toggleDarkMode);
     const router = useIonRouter();
 
     const handleLogout = () => {
-        setToken(undefined);
+        clearAuth();
     };
 
     const kilnId = 'KILN-01';
