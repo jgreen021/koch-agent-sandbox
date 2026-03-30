@@ -1,115 +1,135 @@
-Perfect. Here's a `CODE_REVIEW_GUIDELINES.md` file that captures the review style from the excellent reference you shared:
-
-```markdown
 # Code Review Guidelines
 
 ## Philosophy
 
-Code reviews should **affirm what's working well first**, then suggest enhancements as natural improvements—not failures. Reviews should understand the codebase deeply, respect intentional architectural decisions, and provide specific, actionable guidance tied to project standards.
+Code reviews should **affirm what's working well first**, highlighting production-grade patterns with star ratings (⭐⭐⭐⭐⭐). Suggest enhancements as natural evolutions rather than defects. Reviews must reflect a deep understanding of the specific implementation (including code snippets) and justify all assessments against `project.md` and `SECURITY_STANDARDS.md`.
 
 ## Review Structure
 
-### 1. Opening Context
-- System overview (1-2 sentences)
-- Current state acknowledgment
-- Alignment with project.md and SECURITY_STANDARDS.md
+### 1. Opening Header
+**Format:** `# 📊 Code Review: [Project Name] — Update [YYYY-MM-DD]`
 
-### 2. Strengths Section (Organized by Layer/Component)
-Lead with what's exceptional. Use **5-star emoji ratings** (⭐⭐⭐⭐⭐) for standout work.
+### 2. 🌟 BACKEND REVIEW (Spring Boot)
+Organize by major functional blocks or recent commits.
+
+**Per Component Format:**
+```markdown
+### ✅ **[Component Name]** — ⭐⭐⭐⭐⭐
+**File:** `[Filename].java`
+
+[Brief narrative of why this is exemplary]
+
+**What's Excellent:**
+[Code snippet reflecting the best part of the implementation]
+
+**Why This is Production-Grade:**
+1. [Point 1 - e.g. Cross-Cutting Concern logic]
+2. [Point 2 - e.g. Idempotent Guards]
+3. [Point 3 - e.g. Guaranteed Cleanup]
+
+**Architectural Benefit:**
+- ✅ [Benefit 1]
+- ✅ [Benefit 2]
+```
+
+### 3. ✅ **Test Coverage Assessment**
+Detailed breakdown of new or modified test suites.
 
 **Format:**
+- **Files Added:** List of files
+- **[File] Strengths:** Code examples + specific coverage highlights (e.g. Mockito usage, TDD adherence)
+- **[Context] Coverage:** Checklist of specific scenarios (e.g. Unauthorized access → 401)
+- **Quality Score:** `X/10`
+
+### 4. 🌟 FRONTEND REVIEW (React + Ionic)
+Focus on UX Excellence, Type Safety, and Real-Time Architecture.
+
+**Per Component Format:**
+```markdown
+### ✅ **[Feature Name]** — ⭐⭐⭐⭐⭐
+**File:** `[Filename].tsx`
+
+**[Category: e.g. Security Implementation]:**
+[Analysis + Code Snippets]
+
+**[Category: e.g. Real-Time Validation UX]:**
+[Analysis of logic and visual feedback]
+
+**Accessibility & Navigation:**
+- ✅ [Feature 1]
+- ✅ [Feature 2]
 ```
-### ✅ **[Component Name]** — ⭐⭐⭐⭐⭐
 
-**Strengths:**
-- Specific pattern or implementation
-- Why it's excellent
-- Code example if it clarifies
+### 5. ⚠️ **Observations for Enhancement**
+Address technical debt or polish opportunities.
 
-**Business/Architectural Benefit:**
-- How this decision serves the project goals
-```
-
-**Examples of strong opening sections:**
-- Architecture & Organization
-- Security Implementation
-- Real-Time Architecture
-- State Management
-
-### 3. Deep-Dive Code Examples
-Show actual code from the repo with line numbers. Explain **why** it's good:
-
-**Good example:**
-```java
-// SecurityConfig.java — exemplary RBAC pattern
-@EnableMethodSecurity  // Enables @PreAuthorize on service methods
-public class SecurityConfig {
-    // ...
-}
-```
-**Why:** Enforces authorization at both controller AND method level (defense in depth per SECURITY_STANDARDS.md)
-
-### 4. Observations for Enhancement
-Only after strengths. Format as **potential improvements**, not defects.
-
-**Structure per enhancement:**
-```
-#### **[Number]. [Title]** ([Priority])
+**Format:**
+```markdown
+#### **[Enhancement Title]** ([Priority: LOW/MEDIUM/HIGH])
 
 **Current State:**
-[Show the code as-is]
+[Code Snippet]
 
-**Context Understanding:**
-[Explain why the current approach exists/is valid]
+**Current Behavior:** (The "Why it exists")
+[Explain the current valid implementation]
 
 **Enhancement Opportunity:**
-[Suggest a better alternative with code example]
+[Proposed better approach with code]
 
-**Why This Works:**
-- Benefit 1
-- Benefit 2
-
-**Priority:** [LOW / MEDIUM / HIGH]
+**Why This Matters:**
+- [Benefit 1]
+- [Benefit 2]
 ```
 
-**Tone:** Respectful of trade-offs. Acknowledge if something is currently fine but could be better in the future.
+### 6. 📊 **Commit Quality Scorecard**
+A summary table for quick assessment.
 
-### 5. Scoring Summary
-Use a **structured table** with component-level scores:
+| Aspect | Score | Assessment |
+|--------|-------|------------|
+| Backend Security | X/10 | [Brief note] |
+| Performance | X/10 | [Brief note] |
+| Frontend UX | X/10 | [Brief note] |
+| Type Safety | X/10 | [Brief note] |
 
-| Layer | Component | Score | Notes |
-|-------|-----------|-------|-------|
-| **Backend** | Security | 10/10 | Perfect JWT + RBAC |
-| **Backend** | Architecture | 9/10 | Clean packages; consider X in phase 2 |
+### 7. 🎯 **Implementation Highlights**
+Numbered list of the top 3-5 "wins" of the commit.
 
-**Scoring guidance:**
-- 10/10 = Exemplary, production-ready, reference-quality
-- 9/10 = Strong; minor enhancements for completeness
-- 8/10 = Good; clear improvement areas
-- 7/10 = Functional; needs attention
-- <7/10 = Deficiencies requiring rework
-
-### 6. Priority Enhancements (Ranked)
-Organize by phase/sprint:
-
-```
-### Phase 2 (Next Sprint)
-1. **[Feature/Fix]** — Benefit (Effort, Impact)
-2. ...
-
-### Phase 3 (Backlog)
-...
-```
-
-### 7. Final Assessment
-**One paragraph** that ties everything together:
-- Overall grade (A/B/C/D)
-- Key strengths highlighted
-- Readiness for production/next phase
+### 8. 🏆 **Final Assessment**
+**Format:**
+- **Grade:** [A+ / A / B / etc.]
+- **Summary Narrative:** One paragraph tying the review together.
+- **Recommended Next Phase:** Numbered list of actionable next steps.
 
 ---
 
-## Test Coverage Assessment
+## Technical Checklists
+
+### Backend Standards
+- ✅ Spring AOP for cross-cutting security concerns
+- ✅ Guava `LoadingCache` for bounded, memory-safe caching
+- ✅ Response sanitization (Generic 403s via `GlobalExceptionHandler`)
+- ✅ Audit logging for all security events
+
+### Frontend Standards
+- ✅ `unknown` typing over `any` in catch blocks
+- ✅ Real-time form validation with visual feedback (Green/Red)
+- ✅ `aria-live` and `aria-label` for accessibility
+- ✅ Watchdog patterns for SSE streams
+
+---
+
+## When to Escalate
+- Security vulnerabilities (CVEs or hardcoded secrets)
+- Violations of `SECURITY_STANDARDS.md` (e.g., plain-text passwords)
+- Missing required audit trails for sensitive endpoints
+- Substantial architectural deviation from `project.md`
+
+---
+
+## Reference Example
+For the full aesthetic and tone, always refer to `code-review-a` in the root directory.
+
+## Additional Reference Concerning Tests
 
 ### Where Tests Live
 
@@ -218,178 +238,3 @@ When evaluating test quality in reviews:
 - Load testing not present
 - No chaos engineering tests (what if Kafka fails?)
 - Frontend error boundary not tested
-
-
-## Key Principles
-
-### 1. Understand Before Critiquing
-- Read `project.md` to understand architecture standards
-- Read `SECURITY_STANDARDS.md` for security expectations
-- Study the existing code patterns before suggesting changes
-- **Never** assume a pattern is wrong without understanding why it exists
-
-### 2. Affirmative-First Approach
-- Start with what's working well (at least 60% of the review)
-- Scores should be 7+/10 for production code (8-10 is normal)
-- Enhancements are "nice-to-haves," not "must-fixes" unless truly critical
-- Use language: "Consider...", "Enhancement opportunity...", "Could be improved..." (not "should be")
-
-### 3. Be Specific
-- Always include code line numbers and file paths
-- Show actual before/after when suggesting changes
-- Explain **why** a pattern is better, not just **that** it is
-- Reference project standards: "per project.md line X"
-
-### 4. Respect Architectural Decisions
-- If something is intentional, acknowledge it
-- Example: "You chose in-memory state (project.md line 24) which is correct for high-throughput. In production with X scale, consider..."
-- Don't recommend downgrades or fundamental changes without strong justification
-
-### 5. Prioritize Practically
-- Mark enhancements as LOW/MEDIUM/HIGH
-- Group by phase (current sprint, next sprint, backlog)
-- Justify effort vs. impact
-- Don't overwhelm with 20 issues; focus on 5-7 key ones
-
-### 6. Security & Standards
-- Always verify against SECURITY_STANDARDS.md
-- Call out exemplary security patterns (e.g., RSA JWT, RBAC)
-- Flag only genuine risks, not theoretical ones
-- Cross-reference project.md architectural constraints
-
----
-
-## Section Templates
-
-### Strengths Section Template
-```
-### ✅ **[Component Name]** — ⭐⭐⭐⭐⭐
-
-**Strengths:**
-1. **[Pattern 1]** — [Why it's excellent]
-2. **[Pattern 2]** — [Why it's excellent]
-
-```java
-// Code example
-key implementation here
-```
-
-**Alignment with Standards:**
-- ✅ Adheres to [project.md constraint]
-- ✅ Implements [SECURITY_STANDARDS.md requirement]
-```
-
-### Enhancement Template
-```
-#### **[Number]. [Title]** ([Priority])
-
-**Current State:**
-```java
-// Current implementation
-```
-
-**Context Understanding:**
-[Why this is currently valid/intentional]
-
-**Enhancement Opportunity:**
-```java
-// Proposed improvement
-```
-
-**Why This Works:**
-- [Benefit]
-- [Benefit]
-
-**Priority:** [LOW/MEDIUM/HIGH]
-```
-
----
-
-## What NOT to Do
-
-❌ **Don't:**
-- Recommend downgrades or architectural reversions without strong justification
-- Flag things as "issues" if they're intentional trade-offs
-- Use absolute language ("must", "should") for non-critical items
-- Suggest generic best practices without understanding project context
-- Create false urgency on low-impact items
-- Review without reading project.md and SECURITY_STANDARDS.md first
-
-✅ **Do:**
-- Verify assumptions against project documentation
-- Lead with strengths and affirmation
-- Use conditional language for enhancements ("could", "consider")
-- Explain **why** changes matter
-- Group changes by phase and priority
-- Respect that working, intentional code is not broken
-
----
-
-## Example Opening
-
-**Good:**
-> This is an enterprise-grade industrial IoT anomaly detection system adhering to strict OpenSpec standards (Java 21 records, immutable state, functional programming, stateless security). The application demonstrates exceptional real-time architecture, production-ready security, and thoughtful operational design.
-
-**Bad:**
-> This Spring Boot application has several issues that need to be addressed before production.
-
----
-
-## When to Escalate
-
-Flag to user (don't just recommend):
-- Security vulnerabilities (not theoretical, actual CVEs)
-- Architectural conflicts with project.md constraints
-- Test coverage below 50% (per TDD standards in project.md)
-- Hardcoded secrets in production code
-- Missing required standards per SECURITY_STANDARDS.md
-
----
-
-## Reference: Scoring Examples
-
-**⭐⭐⭐⭐⭐ (10/10)** — Reference-quality implementation
-- Exemplary pattern that should be replicated
-- Exceeds project standards
-- Example: "RSA-256 JWT with dual-token flow (exactly per SECURITY_STANDARDS.md)"
-
-**⭐⭐⭐⭐ (9/10)** — Strong, production-ready
-- Minor enhancements possible but not blocking
-- Example: "Clean packages, solid SOLID principles; consider test coverage in next phase"
-
-**⭐⭐⭐ (8/10)** — Good, functional
-- Clear improvement areas but not critical
-- Example: "Works well; could benefit from configuration externalization"
-
-**⭐⭐ (7/10)** — Adequate, needs attention
-- Multiple improvements recommended before release
-- Example: "Functional but fragile; error handling needs work"
-
----
-
-## Usage for Future Reviews
-
-When requesting a code review in a new conversation, share:
-
-1. **This guideline file** or reference it
-2. **Recent push/commit info** to be reviewed
-3. **Any specific areas** to focus on (optional)
-
-Reviewer should:
-1. Read this file first
-2. Read `project.md` and `SECURITY_STANDARDS.md`
-3. Follow the structure above
-4. Produce a review in the same style as the reference example
-
----
-
-## Reference Example
-
-See `code-review-032826.md` in the repository for an exemplary review following these guidelines. Key characteristics:
-- 5-star ratings used liberally for strengths
-- Specific code examples with line numbers
-- Enhancements framed as "opportunities," not defects
-- Priority levels for each suggestion
-- Scoring table for component-level breakdown
-- Final grade with affirmative summary
-```
