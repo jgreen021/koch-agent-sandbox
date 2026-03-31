@@ -1,3 +1,6 @@
+logging:
+  level:
+    org.springframework.security: DEBUG
 spring:
   application:
     name: koch-anomaly-test
@@ -16,6 +19,7 @@ spring:
   cloud:
     vault:
       enabled: false  # Disable Vault for unit/integration tests to avoid connection errors
-  # Provide a static key for tests since Vault is disabled
-  # This is a random 32-byte key generated for the test environment.
+# Provide a static key for tests since Vault is disabled
+# WARNING: This is a placeholder for testing only. Do not use production keys in test files.
+# For local tests, copy this file to application-test.yml and replace the key below if needed.
 reading-value-key: dGhpcy1pcy1hLWZha2Uta2V5LTMyLWJ5dGVzLWxvbmctISEhIQ==

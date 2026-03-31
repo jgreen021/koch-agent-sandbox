@@ -1,14 +1,16 @@
 package com.koch.anomaly.util;
 
-import jakarta.persistence.AttributeConverter;
-import jakarta.persistence.Converter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import java.security.GeneralSecurityException;
+import java.util.Base64;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.GeneralSecurityException;
-import java.util.Base64;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 @Converter
 @Component
@@ -25,7 +27,9 @@ public class EncryptionConverter implements AttributeConverter<Double, String> {
 
     @Override
     public String convertToDatabaseColumn(Double attribute) {
-        if (attribute == null) return null;
+        if (attribute == null) {
+            return null;
+        }
         try {
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             cipher.init(Cipher.ENCRYPT_MODE, keySpec);
@@ -38,7 +42,9 @@ public class EncryptionConverter implements AttributeConverter<Double, String> {
 
     @Override
     public Double convertToEntityAttribute(String dbData) {
-        if (dbData == null) return null;
+        if (dbData == null) {
+            return null;
+        }
         try {
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             cipher.init(Cipher.DECRYPT_MODE, keySpec);
