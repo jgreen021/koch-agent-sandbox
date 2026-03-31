@@ -7,5 +7,6 @@ public enum KilnType {
     // Pottery / Ceramic
     ELECTRIC, GAS, WOOD_FIRED, RAKU,
     // Industrial
-    CONTINUOUS, HOFFMANN, GLASS, HEAT_TREATING
+    CONTINUOUS, HOFFMANN, GLASS, HEAT_TREATING,
+    ROTARY, VERTICAL
 }

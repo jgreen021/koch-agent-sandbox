@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/password", "/api/auth/me").authenticated()
                         .requestMatchers("/api/sensors/readings").authenticated()
                         .requestMatchers("/api/sensors/stream/**").authenticated()
+                        .requestMatchers("/api/kilns/**").authenticated()
                         .anyRequest().denyAll()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

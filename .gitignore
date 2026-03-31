@@ -10,7 +10,7 @@ bruno/.env
 !**/src/main/**/build/
 !**/src/test/**/build/
 **/*.log
-
+node_modules/
 # Exclude the vault unseal script containing keys
 unseal.ps1
 
@@ -23,6 +23,7 @@ out/
 bootRun.log
 src/main/resources/application.properties
 src/main/resources/application.yml
+src/test/java/com/koch/anomaly/HashCheck.java
 !**/src/main/**/out/
 !**/src/test/**/out/
 

@@ -16,6 +16,7 @@ public class KilnSimulatorScheduler {
     private static final Logger logger = LoggerFactory.getLogger(KilnSimulatorScheduler.class);
 
     private final KilnSensorProducer producer;
+    private final KilnSimulationRegistry registry;
     private final Random random = new Random();
 
     private enum KilnState {
@@ -26,51 +27,57 @@ public class KilnSimulatorScheduler {
     private final Map<String, LocalDateTime> stateExpirationMap = new ConcurrentHashMap<>();
     private final Map<String, KilnState> currentStateMap = new ConcurrentHashMap<>();
 
-    public KilnSimulatorScheduler(KilnSensorProducer producer) {
+    public KilnSimulatorScheduler(KilnSensorProducer producer, KilnSimulationRegistry registry) {
         this.producer = producer;
-        // Initialize states
-        for (int i = 1; i <= 3; i++) {
-            String assetId = "KILN-0" + i;
-            currentStateMap.put(assetId, KilnState.NORMAL);
-            stateExpirationMap.put(assetId, LocalDateTime.now().plusMinutes(10));
-        }
+        this.registry = registry;
     }
 
     @Scheduled(fixedRateString = "${simulation.rate:2000}")
     public void simulateReadings() {
         LocalDateTime now = LocalDateTime.now();
 
-        for (int i = 1; i <= 3; i++) {
-            String assetId = "KILN-0" + i;
+        // Dynamically iterate over all active kilns in the registry
+        // If the cache is empty (e.g. at startup with no DB records), no simulation occurs.
+        registry.getCache().forEach((uuid, entry) -> {
+            Kiln kiln = entry.kiln;
+            String assetId = kiln.getName(); // Use the database name as the telemetry ID
+
+            // Initialize state if not present
+            currentStateMap.putIfAbsent(assetId, KilnState.NORMAL);
+            stateExpirationMap.putIfAbsent(assetId, now.plusMinutes(5));
 
             // State transition logic
             if (now.isAfter(stateExpirationMap.get(assetId))) {
                 double chance = random.nextDouble();
-                if (chance < 0.8) {
+                double warningProb = kiln.getWarningProbability();
+                double criticalProb = kiln.getCriticalProbability();
+                double normalProb = 1.0 - warningProb - criticalProb;
+
+                if (chance < normalProb) {
                     currentStateMap.put(assetId, KilnState.NORMAL);
-                } else if (chance < 0.95) {
+                } else if (chance < (normalProb + warningProb)) {
                     currentStateMap.put(assetId, KilnState.WARNING);
                 } else {
                     currentStateMap.put(assetId, KilnState.CRITICAL);
                 }
-                // Keep the state for 10 minutes
-                stateExpirationMap.put(assetId, now.plusMinutes(3));
-                logger.info("Kiln {} transitioned to {}", assetId, currentStateMap.get(assetId));
+                
+                // Keep the state for the configured duration (seconds) or default to 5m
+                int duration = kiln.getStateDurationSeconds() > 0 ? kiln.getStateDurationSeconds() : 300;
+                stateExpirationMap.put(assetId, now.plusSeconds(duration));
+                logger.info("Dynamic Kiln {} transitioned to {}", assetId, currentStateMap.get(assetId));
             }
 
             KilnState state = currentStateMap.get(assetId);
 
+            // Use the kiln's specific thresholds from the database
             double baseTemp = switch (state) {
-                case CRITICAL ->
-                    310.0;
-                case WARNING ->
-                    265.0;
-                default ->
-                    200.0;
+                case CRITICAL -> kiln.getCriticalTemp();
+                case WARNING -> kiln.getWarningTemp();
+                default -> kiln.getBaselineTemp();
             };
 
-            // Add some noise (+/- 10 degrees)
-            double tempVariation = (random.nextDouble() * 20) - 10;
+            // Add some noise (+/- 5 degrees)
+            double tempVariation = (random.nextDouble() * 10) - 5;
             double currentTemp = baseTemp + tempVariation;
 
             AssetSensorReading reading = new AssetSensorReading(
@@ -83,8 +90,8 @@ public class KilnSimulatorScheduler {
                     state.name()
             );
 
-            logger.debug("Simulating reading: {}", reading);
+            logger.debug("Simulating dynamic reading for {}: {}", assetId, reading);
             producer.publishReading(reading);
-        }
+        });
     }
 }
